@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
@@ -168,6 +169,15 @@ class PublicDateFlowTest {
     }
 
     @Test
+    void emptyDatePageUploadRedirectsBackWithError() throws Exception {
+        mockMvc.perform(post("/clubs/halo/dates/2026-08-07/upload")
+                        .param("eventId", haloFriday.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clubs/halo/dates/2026-08-07"))
+                .andExpect(flash().attribute("errorMessage", "Choose at least one image to upload."));
+    }
+
+    @Test
     void eventUploadCanStillReturnToDateGalleryWhenRequested() throws Exception {
         mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
                         .file(jpeg("inline-event.jpg"))
@@ -193,6 +203,14 @@ class PublicDateFlowTest {
                         .file(jpeg("event-no-csrf.jpg")))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/clubs/halo/events/" + haloFriday.getId() + "/gallery"));
+    }
+
+    @Test
+    void emptyEventPageUploadRedirectsBackWithError() throws Exception {
+        mockMvc.perform(post("/clubs/halo/events/{eventId}/upload", haloFriday.getId()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clubs/halo/events/" + haloFriday.getId() + "/upload"))
+                .andExpect(flash().attribute("errorMessage", "Choose at least one image to upload."));
     }
 
     private Club saveClub(String name, String slug) {

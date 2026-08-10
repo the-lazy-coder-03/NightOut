@@ -100,7 +100,7 @@ public class PublicController {
     public String handleUpload(
             @PathVariable String slug,
             @PathVariable Long eventId,
-            @RequestParam("photos") MultipartFile[] photos,
+            @RequestParam(value = "photos", required = false) MultipartFile[] photos,
             @RequestParam(value = "returnDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate returnDate,
             RedirectAttributes redirectAttributes
     ) {
@@ -119,7 +119,7 @@ public class PublicController {
             @PathVariable String slug,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate nightDate,
             @RequestParam(value = "eventId", required = false) Long eventId,
-            @RequestParam("photos") MultipartFile[] photos,
+            @RequestParam(value = "photos", required = false) MultipartFile[] photos,
             RedirectAttributes redirectAttributes
     ) {
         try {
