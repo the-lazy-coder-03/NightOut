@@ -21,7 +21,7 @@ concurrency:
 env:
   APP_NAME: nightout
   JAVA_VERSION: "25"
-  EC2_HOST: 3.8.201.115
+  EC2_HOST: 13.41.33.158
   EC2_USER: ubuntu
   EC2_PORT: "22"
 
@@ -39,15 +39,15 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: gradle
+          cache: maven
 
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Build with Maven
+        run: mvn -B test package
 
       - name: Stage application jar
         run: |
           mkdir -p dist
-          jar_file=$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' | head -n 1)
+          jar_file=$(find target -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' | head -n 1)
           test -n "$jar_file"
           cp "$jar_file" dist/${APP_NAME}.jar
 

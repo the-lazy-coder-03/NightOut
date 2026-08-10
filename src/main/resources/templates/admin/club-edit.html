@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Club | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/admin">NightOut Admin</a>
+</header>
+<main class="shell">
+    <section class="hero">
+        <span class="eyebrow">Club</span>
+        <h1 th:text="'Edit ' + ${club.name}">Edit club</h1>
+    </section>
+    <form class="card form-grid two" method="post" th:action="@{/admin/clubs/{id}(id=${club.id})}">
+        <label>Name <input name="name" th:value="${club.name}" required></label>
+        <label>Slug <input name="slug" th:value="${club.slug}" required></label>
+        <label>City <input name="city" th:value="${club.city}" required></label>
+        <label>Address <input name="address" th:value="${club.address}"></label>
+        <label>Logo URL <input name="logoUrl" th:value="${club.logoUrl}"></label>
+        <label>9Drive folder ID <input name="storageFolderId" th:value="${club.storageFolderId}"></label>
+        <label>Active <input type="checkbox" name="active" value="true" th:checked="${club.active}"></label>
+        <button class="button" type="submit">Save Club</button>
+    </form>
+</main>
+</body>
+</html>

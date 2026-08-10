@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${club.name} + ' Owner | NightOut'">Owner | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/owner">NightOut Owner</a>
+    <nav class="nav">
+        <a th:href="@{/clubs/{slug}(slug=${club.slug})}">Public page</a>
+        <a th:href="@{/owner/clubs/{id}/qr.png(id=${club.id})}" download>QR PNG</a>
+    </nav>
+</header>
+<main class="shell">
+    <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Saved.</div>
+    <section class="hero">
+        <span class="eyebrow" th:text="${club.city}">Cape Town</span>
+        <h1 th:text="${club.name}">Halo</h1>
+    </section>
+
+    <section class="section">
+        <h2>Create night</h2>
+        <form class="card form-grid three" method="post" th:action="@{/owner/clubs/{id}/events(id=${club.id})}">
+            <label>Event name <input name="eventName" required></label>
+            <label>Date <input name="eventDate" type="date" required></label>
+            <label>Start <input name="startTime" type="time" value="21:00" required></label>
+            <label>End <input name="endTime" type="time" value="03:00" required></label>
+            <button class="button" type="submit">Create Night</button>
+        </form>
+    </section>
+
+    <section class="section">
+        <h2>Nights</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr><th>Night</th><th>Date</th><th>Status</th><th>Photos</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${events}">
+                    <td th:text="${item.event.eventName}">Saturday</td>
+                    <td th:text="${#temporals.format(item.event.eventDate, 'yyyy-MM-dd')}">2026-08-08</td>
+                    <td><span class="status" th:classappend="${item.status.name().toLowerCase()}" th:text="${item.status}">RECENT</span></td>
+                    <td th:text="${item.photoCount}">0</td>
+                    <td class="actions">
+                        <a class="button secondary" th:href="@{/clubs/{slug}/events/{id}/gallery(slug=${club.slug},id=${item.event.id})}">Gallery</a>
+                        <form method="post" th:action="@{/owner/events/{id}/cancel(id=${item.event.id})}">
+                            <button class="button danger" type="submit">Cancel</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Uploaded photos</h2>
+        <div th:if="${#lists.isEmpty(photos)}" class="empty">No photos uploaded yet.</div>
+        <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
+            <div th:each="photo : ${photos}" class="card">
+                <img th:src="@{/photos/{id}(id=${photo.id})}" th:alt="${photo.originalFilename}" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">
+                <p th:text="${photo.event.eventName}">Night</p>
+                <form method="post" th:action="@{/owner/photos/{id}/remove(id=${photo.id})}">
+                    <button class="button danger" type="submit">Remove</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

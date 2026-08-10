@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${eventView.event.eventName} + ' | NightOut'">Night | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">NightOut</a>
+    <nav class="nav">
+        <a th:href="@{/clubs/{slug}(slug=${club.slug})}" th:text="${club.name}">Club</a>
+    </nav>
+</header>
+<main class="shell">
+    <section class="hero">
+        <span class="eyebrow" th:text="${club.name}">Halo</span>
+        <h1 th:text="${#temporals.format(eventView.event.eventDate, 'EEEE d MMMM yyyy')}">Saturday 8 August 2026</h1>
+        <p th:text="${eventView.photoCount + ' photos. Available until ' + #temporals.format(eventView.expiresOn, 'd MMMM yyyy')}">143 photos</p>
+        <span class="status" th:classappend="${eventView.status.name().toLowerCase()}" th:text="${eventView.status}">RECENT</span>
+    </section>
+
+    <section class="section actions">
+        <a class="button" th:if="${eventView.galleryAvailable}" th:href="@{/clubs/{slug}/events/{id}/gallery(slug=${club.slug},id=${eventView.event.id})}">View Gallery</a>
+        <a class="button secondary" th:if="${eventView.uploadAvailable}" th:href="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${eventView.event.id})}">Upload Photos</a>
+        <button class="button secondary" disabled th:if="${!eventView.uploadAvailable}" th:text="${eventView.status.name() == 'UPCOMING' ? 'Coming Soon' : 'Gallery Closed'}">Closed</button>
+    </section>
+</main>
+</body>
+</html>

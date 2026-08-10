@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${club.name} + ' Gallery | NightOut'">Gallery | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">NightOut</a>
+    <nav class="nav">
+        <a th:href="@{/clubs/{slug}/events/{id}(slug=${club.slug},id=${eventView.event.id})}">Night</a>
+        <a th:href="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${eventView.event.id})}">Upload</a>
+    </nav>
+</header>
+<main class="shell">
+    <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Uploaded.</div>
+    <section class="hero">
+        <span class="eyebrow" th:text="${club.name}">Halo</span>
+        <h1 th:text="${eventView.event.eventName}">Saturday</h1>
+        <p th:text="${#temporals.format(eventView.event.eventDate, 'EEEE d MMMM yyyy') + ' | Photos available until ' + #temporals.format(eventView.expiresOn, 'd MMMM yyyy')}">Date</p>
+    </section>
+
+    <section class="section">
+        <div th:if="${#lists.isEmpty(photos)}" class="empty">No photos have been uploaded for this night yet.</div>
+        <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
+            <button class="gallery-button" th:each="photo : ${photos}" th:attr="data-gallery-src=@{/photos/{id}(id=${photo.id})}" type="button">
+                <img th:src="@{/photos/{id}(id=${photo.id})}" th:alt="${photo.originalFilename}" loading="lazy">
+            </button>
+        </div>
+    </section>
+</main>
+<div class="lightbox" data-lightbox aria-hidden="true">
+    <button class="close" type="button" data-lightbox-close aria-label="Close">&times;</button>
+    <button class="prev" type="button" data-lightbox-prev aria-label="Previous">‹</button>
+    <img data-lightbox-image alt="">
+    <button class="next" type="button" data-lightbox-next aria-label="Next">›</button>
+</div>
+<script src="/js/gallery.js"></script>
+</body>
+</html>

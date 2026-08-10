@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Upload Photos | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">NightOut</a>
+    <nav class="nav">
+        <a th:href="@{/clubs/{slug}/events/{id}(slug=${club.slug},id=${eventView.event.id})}">Night</a>
+        <a th:href="@{/clubs/{slug}/events/{id}/gallery(slug=${club.slug},id=${eventView.event.id})}">Gallery</a>
+    </nav>
+</header>
+<main class="shell">
+    <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Upload unavailable.</div>
+    <section class="hero">
+        <span class="eyebrow" th:text="${club.name}">Halo</span>
+        <h1>Upload Photos</h1>
+        <p th:text="${#temporals.format(eventView.event.eventDate, 'EEEE d MMMM yyyy') + ' | Available until ' + #temporals.format(eventView.expiresOn, 'd MMMM yyyy')}">Date</p>
+    </section>
+
+    <form class="upload-zone" method="post" enctype="multipart/form-data" data-upload-form
+          th:action="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${eventView.event.id})}">
+        <label>
+            Select photos
+            <input data-photo-input type="file" name="photos" accept="image/jpeg,image/png,image/webp" multiple th:disabled="${!eventView.uploadAvailable}">
+        </label>
+        <p class="meta" data-photo-summary>No photos selected</p>
+        <button class="button" data-upload-submit type="submit" th:disabled="${!eventView.uploadAvailable}">Upload Photos</button>
+    </form>
+</main>
+<script src="/js/upload.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${club.name} + ' | NightOut'">Club | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">NightOut</a>
+    <nav class="nav">
+        <a href="/">Locations</a>
+        <a href="/login">Club login</a>
+    </nav>
+</header>
+<main class="shell">
+    <section class="hero">
+        <span class="eyebrow" th:text="${club.city}">Cape Town</span>
+        <h1 th:text="${club.name}">Halo</h1>
+        <p th:text="${club.address}">12 Loop Street</p>
+    </section>
+
+    <section class="section">
+        <h2>Recent Nights</h2>
+        <div th:if="${#lists.isEmpty(recentEvents)}" class="empty">There are no open galleries right now.</div>
+        <div class="grid event-grid" style="margin-top: 14px" th:if="${!#lists.isEmpty(recentEvents)}">
+            <a class="card card-link" th:each="item : ${recentEvents}" th:href="@{/clubs/{slug}/events/{id}(slug=${club.slug},id=${item.event.id})}">
+                <span class="status" th:classappend="${item.status.name().toLowerCase()}" th:text="${item.status}">RECENT</span>
+                <h3 th:text="${item.event.eventName}">Saturday</h3>
+                <span class="meta" th:text="${#temporals.format(item.event.eventDate, 'EEEE d MMMM yyyy')}">Saturday 8 August 2026</span>
+                <span class="meta" th:text="${item.photoCount} + ' photos'">143 photos</span>
+            </a>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Upcoming and Closed Nights</h2>
+        <div th:if="${#lists.isEmpty(otherEvents)}" class="empty">No upcoming or closed nights yet.</div>
+        <div class="grid event-grid" style="margin-top: 14px" th:if="${!#lists.isEmpty(otherEvents)}">
+            <a class="card card-link" th:each="item : ${otherEvents}" th:href="@{/clubs/{slug}/events/{id}(slug=${club.slug},id=${item.event.id})}">
+                <span class="status" th:classappend="${item.status.name().toLowerCase()}" th:text="${item.status}">UPCOMING</span>
+                <h3 th:text="${item.event.eventName}">Next Saturday</h3>
+                <span class="meta" th:text="${#temporals.format(item.event.eventDate, 'EEEE d MMMM yyyy')}">Saturday 15 August 2026</span>
+                <span class="meta" th:text="${item.status.name() == 'UPCOMING' ? 'Coming Soon' : 'Closed'}">Coming Soon</span>
+            </a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

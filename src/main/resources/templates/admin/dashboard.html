@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">NightOut Admin</a>
+    <nav class="nav">
+        <a href="/owner">Owner view</a>
+        <form method="post" th:action="@{/logout}">
+            <button type="submit">Log out</button>
+        </form>
+    </nav>
+</header>
+<main class="shell">
+    <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Saved.</div>
+    <section class="hero">
+        <span class="eyebrow">Control room</span>
+        <h1>Admin Dashboard</h1>
+        <p>Create clubs, manage nights, assign owners, remove photos, and download permanent club QR codes.</p>
+    </section>
+
+    <section class="section">
+        <h2>Create club</h2>
+        <form class="card form-grid two" method="post" th:action="@{/admin/clubs}">
+            <label>Name <input name="name" required></label>
+            <label>Slug <input name="slug" placeholder="halo"></label>
+            <label>City <input name="city" required></label>
+            <label>Address <input name="address"></label>
+            <label>Logo URL <input name="logoUrl" type="url"></label>
+            <label>9Drive folder ID <input name="storageFolderId"></label>
+            <button class="button" type="submit">Create Club</button>
+        </form>
+    </section>
+
+    <section class="section">
+        <h2>Clubs</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr><th>Name</th><th>City</th><th>Status</th><th>QR</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="club : ${clubs}">
+                    <td><a th:href="@{/clubs/{slug}(slug=${club.slug})}" th:text="${club.name}">Halo</a></td>
+                    <td th:text="${club.city}">Cape Town</td>
+                    <td th:text="${club.active ? 'Active' : 'Disabled'}">Active</td>
+                    <td><a th:href="@{/admin/clubs/{id}/qr.png(id=${club.id})}" download>QR PNG</a></td>
+                    <td class="actions">
+                        <a class="button secondary" th:href="@{/admin/clubs/{id}/edit(id=${club.id})}">Edit</a>
+                        <form method="post" th:action="@{/admin/clubs/{id}/disable(id=${club.id})}">
+                            <button class="button danger" type="submit">Disable</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Create night</h2>
+        <form class="card form-grid three" method="post" th:action="@{/admin/events}">
+            <label>Club
+                <select name="clubId" required>
+                    <option th:each="club : ${clubs}" th:value="${club.id}" th:text="${club.name}">Halo</option>
+                </select>
+            </label>
+            <label>Event name <input name="eventName" required></label>
+            <label>Date <input name="eventDate" type="date" required></label>
+            <label>Start <input name="startTime" type="time" required value="21:00"></label>
+            <label>End <input name="endTime" type="time" required value="03:00"></label>
+            <button class="button" type="submit">Create Night</button>
+        </form>
+    </section>
+
+    <section class="section">
+        <h2>Nights</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr><th>Club</th><th>Night</th><th>Date</th><th>Time</th><th>State</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="event : ${events}">
+                    <td th:text="${event.club.name}">Halo</td>
+                    <td th:text="${event.eventName}">Saturday</td>
+                    <td th:text="${#temporals.format(event.eventDate, 'yyyy-MM-dd')}">2026-08-08</td>
+                    <td th:text="${event.startTime + ' - ' + event.endTime}">21:00 - 03:00</td>
+                    <td th:text="${event.cancelled ? 'Cancelled' : 'Open'}">Open</td>
+                    <td class="actions">
+                        <a class="button secondary" th:href="@{/admin/events/{id}/edit(id=${event.id})}">Edit</a>
+                        <form method="post" th:action="@{/admin/events/{id}/delete(id=${event.id})}">
+                            <button class="button danger" type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Create club owner</h2>
+        <form class="card form-grid two" method="post" th:action="@{/admin/owners}">
+            <label>Email <input name="email" type="email" required></label>
+            <label>Full name <input name="fullName" required></label>
+            <label>Password <input name="password" type="password" minlength="8" required></label>
+            <label>Assign club
+                <select name="clubIds" multiple>
+                    <option th:each="club : ${clubs}" th:value="${club.id}" th:text="${club.name}">Halo</option>
+                </select>
+            </label>
+            <button class="button" type="submit">Create Owner</button>
+        </form>
+    </section>
+
+    <section class="section">
+        <h2>Photos</h2>
+        <div th:if="${#lists.isEmpty(photos)}" class="empty">No photos uploaded yet.</div>
+        <div class="table-wrap" th:if="${!#lists.isEmpty(photos)}">
+            <table>
+                <thead>
+                <tr><th>Preview</th><th>Club</th><th>Night</th><th>File</th><th>Uploaded</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="photo : ${photos}">
+                    <td><img th:src="@{/photos/{id}(id=${photo.id})}" alt="" loading="lazy" style="width:64px;height:64px;object-fit:cover;border-radius:8px"></td>
+                    <td th:text="${photo.event.club.name}">Halo</td>
+                    <td th:text="${photo.event.eventName}">Saturday</td>
+                    <td th:text="${photo.originalFilename}">photo.jpg</td>
+                    <td th:text="${#temporals.format(photo.uploadedAt, 'yyyy-MM-dd HH:mm')}">2026-08-08</td>
+                    <td>
+                        <form method="post" th:action="@{/admin/photos/{id}/remove(id=${photo.id})}">
+                            <button class="button danger" type="submit">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>
