@@ -46,8 +46,9 @@ public class PublicController {
     @GetMapping("/clubs/{slug}")
     public String club(@PathVariable String slug, Model model) {
         Club club = clubService.requireActiveBySlug(slug);
+        var nightDates = eventService.nightDateViewsForClub(club, nightlifeDateService.currentAndPreviousNightDates(7));
         model.addAttribute("club", club);
-        model.addAttribute("nightDates", eventService.nightDateViewsForClub(club, nightlifeDateService.currentAndPreviousNightDates(7)));
+        model.addAttribute("nightDates", nightDates.reversed());
         return "club";
     }
 

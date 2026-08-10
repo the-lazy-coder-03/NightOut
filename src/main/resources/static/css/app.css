@@ -124,7 +124,10 @@ p {
 }
 
 .date-grid {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(8, minmax(108px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
 }
 
 .card {
@@ -143,12 +146,15 @@ p {
 }
 
 .date-card {
-    min-height: 156px;
+    min-height: 142px;
+    min-width: 0;
+    padding: 14px;
 }
 
 .date-number {
     font-weight: 800;
-    font-size: 1.15rem;
+    font-size: 0.98rem;
+    line-height: 1.2;
 }
 
 .meta {
@@ -167,6 +173,13 @@ p {
     color: var(--muted);
     font-size: 0.85rem;
     background: #fbfaf5;
+}
+
+.date-card .status {
+    min-height: 24px;
+    padding: 3px 8px;
+    font-size: 0.72rem;
+    white-space: nowrap;
 }
 
 .status.active,

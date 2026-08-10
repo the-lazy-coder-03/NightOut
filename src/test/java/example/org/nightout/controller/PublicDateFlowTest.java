@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -67,11 +68,19 @@ class PublicDateFlowTest {
 
     @Test
     void clubPageShowsCurrentNightAndSevenPreviousDatesBeforeNoon() throws Exception {
-        mockMvc.perform(get("/clubs/halo"))
+        String html = mockMvc.perform(get("/clubs/halo"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/clubs/halo/dates/2026-08-07")))
                 .andExpect(content().string(containsString("/clubs/halo/dates/2026-07-31")))
-                .andExpect(content().string(not(containsString("/clubs/halo/dates/2026-08-08"))));
+                .andExpect(content().string(not(containsString("/clubs/halo/dates/2026-08-08"))))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(html).containsSubsequence(
+                "/clubs/halo/dates/2026-07-31",
+                "/clubs/halo/dates/2026-08-07"
+        );
     }
 
     @Test
