@@ -21,7 +21,7 @@ concurrency:
 env:
   APP_NAME: nightout
   JAVA_VERSION: "25"
-  EC2_HOST: 13.41.33.158
+  EC2_HOST: 3.8.201.115
   EC2_USER: ubuntu
   EC2_PORT: "22"
 
