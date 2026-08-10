@@ -1,0 +1,125 @@
+name: Build and deploy
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightout-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_NAME: nightout
+  JAVA_VERSION: "25"
+  EC2_HOST: 3.8.201.115
+  EC2_USER: ubuntu
+  EC2_PORT: "22"
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Stage application jar
+        run: |
+          mkdir -p dist
+          cp build/libs/*.jar dist/${APP_NAME}.jar
+
+      - name: Upload application jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-jar
+          path: dist/${{ env.APP_NAME }}.jar
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy to EC2
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+
+    steps:
+      - name: Skip deploy without SSH key
+        if: env.SSH_PRIVATE_KEY == ''
+        run: echo "EC2_SSH_KEY is not configured; build completed and deploy was skipped."
+
+      - name: Check out repository
+        if: env.SSH_PRIVATE_KEY != ''
+        uses: actions/checkout@v4
+
+      - name: Download application jar
+        if: env.SSH_PRIVATE_KEY != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-jar
+          path: dist
+
+      - name: Configure SSH
+        if: env.SSH_PRIVATE_KEY != ''
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/nightout_deploy_key
+          chmod 600 ~/.ssh/nightout_deploy_key
+          ssh-keyscan -p "$EC2_PORT" -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy service
+        if: env.SSH_PRIVATE_KEY != ''
+        run: |
+          scp -i ~/.ssh/nightout_deploy_key -P "$EC2_PORT" \
+            dist/${APP_NAME}.jar deploy/nightout.service deploy/nightout.env.example \
+            "${EC2_USER}@${EC2_HOST}:/tmp/"
+
+          ssh -i ~/.ssh/nightout_deploy_key -p "$EC2_PORT" "${EC2_USER}@${EC2_HOST}" <<'REMOTE'
+            set -euo pipefail
+
+            if ! command -v java >/dev/null 2>&1; then
+              sudo apt-get update
+              sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-25-jre-headless
+            fi
+
+            if ! id nightout >/dev/null 2>&1; then
+              sudo useradd --system --home /opt/nightout --shell /usr/sbin/nologin nightout
+            fi
+
+            sudo install -d -o nightout -g nightout -m 0755 /opt/nightout
+            sudo install -d -o root -g root -m 0755 /etc/nightout
+            if [ ! -f /etc/nightout/nightout.env ]; then
+              sudo install -o root -g root -m 0644 /tmp/nightout.env.example /etc/nightout/nightout.env
+            fi
+
+            sudo install -o root -g root -m 0644 /tmp/nightout.service /etc/systemd/system/nightout.service
+            sudo install -o nightout -g nightout -m 0644 /tmp/nightout.jar /opt/nightout/nightout.jar
+            rm -f /tmp/nightout.jar /tmp/nightout.service /tmp/nightout.env.example
+
+            sudo systemctl daemon-reload
+            sudo systemctl enable nightout
+            sudo systemctl restart nightout
+            sudo systemctl is-active --quiet nightout
+          REMOTE
