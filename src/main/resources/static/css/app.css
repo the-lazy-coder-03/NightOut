@@ -535,6 +535,18 @@ th {
         width: 100%;
     }
 
+    .date-grid {
+        display: flex;
+        flex-direction: column-reverse;
+        overflow-x: visible;
+        padding-bottom: 0;
+    }
+
+    .date-card {
+        width: 100%;
+        min-height: 116px;
+    }
+
     .upload-bar {
         justify-content: stretch;
     }
