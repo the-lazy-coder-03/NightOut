@@ -105,11 +105,6 @@ jobs:
           ssh -i ~/.ssh/nightout_deploy_key -p "$EC2_PORT" "${EC2_USER}@${EC2_HOST}" <<'REMOTE'
             set -euo pipefail
 
-            if ! command -v java >/dev/null 2>&1; then
-              sudo apt-get update
-              sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-25-jre-headless
-            fi
-
             if ! id nightout >/dev/null 2>&1; then
               sudo useradd --system --home /opt/nightout --shell /usr/sbin/nologin nightout
             fi
@@ -119,6 +114,122 @@ jobs:
             if [ ! -f /etc/nightout/nightout.env ]; then
               sudo install -o root -g root -m 0644 /tmp/nightout.env.example /etc/nightout/nightout.env
             fi
+
+            install_temurin_jre() {
+              if [ -x /opt/nightout/jre/bin/java ] && /opt/nightout/jre/bin/java -version 2>&1 | grep -q 'version "25'; then
+                /opt/nightout/jre/bin/java -version
+                return
+              fi
+
+              sudo apt-get update
+              sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl python3 tar
+
+              arch="$(uname -m)"
+              case "$arch" in
+                x86_64|amd64) adoptium_arch=x64 ;;
+                aarch64|arm64) adoptium_arch=aarch64 ;;
+                *)
+                  echo "Unsupported CPU architecture for Temurin JRE: $arch"
+                  exit 1
+                  ;;
+              esac
+
+              jre_url="$(curl -fsSL "https://api.adoptium.net/v3/assets/latest/25/hotspot?architecture=${adoptium_arch}&image_type=jre&os=linux&vendor=eclipse" \
+                | python3 -c 'import json, sys; print(json.load(sys.stdin)[0]["binary"]["package"]["link"])')"
+              tmp_jre="/tmp/temurin-25-jre.tar.gz"
+
+              curl -fsSL "$jre_url" -o "$tmp_jre"
+              sudo rm -rf /opt/nightout/jre
+              sudo install -d -o root -g root -m 0755 /opt/nightout/jre
+              sudo tar -xzf "$tmp_jre" -C /opt/nightout/jre --strip-components=1
+              sudo chown -R root:root /opt/nightout/jre
+              rm -f "$tmp_jre"
+
+              /opt/nightout/jre/bin/java -version
+            }
+
+            set_nightout_env() {
+              key="$1"
+              value="$2"
+              escaped_value="$(printf '%s' "$value" | sed -e 's/[&|\\]/\\&/g')"
+
+              if sudo grep -q "^${key}=" /etc/nightout/nightout.env; then
+                sudo sed -i "s|^${key}=.*|${key}=${escaped_value}|" /etc/nightout/nightout.env
+              else
+                printf '%s=%s\n' "$key" "$value" | sudo tee -a /etc/nightout/nightout.env >/dev/null
+              fi
+            }
+
+            ensure_local_postgres() {
+              env_value() {
+                key="$1"
+                sed -n "s/^${key}=//p" /etc/nightout/nightout.env | tail -n 1
+              }
+
+              db_url="$(env_value SPRING_DATASOURCE_URL)"
+              db_user="$(env_value SPRING_DATASOURCE_USERNAME)"
+              db_password="$(env_value SPRING_DATASOURCE_PASSWORD)"
+              db_user="${db_user:-nightout}"
+
+              if [ -z "$db_password" ] || [ "$db_password" = "change-me" ]; then
+                db_password="$(python3 -c 'import secrets; print(secrets.token_hex(24))')"
+                set_nightout_env SPRING_DATASOURCE_PASSWORD "$db_password"
+              fi
+
+              db_host="localhost"
+              db_name="nightout"
+              if [[ "$db_url" == jdbc:postgresql://* ]]; then
+                db_target="${db_url#jdbc:postgresql://}"
+                db_host="${db_target%%[:/]*}"
+                db_path="${db_target#*/}"
+                db_name="${db_path%%\?*}"
+              elif [[ "$db_url" == jdbc:postgresql:* ]]; then
+                db_name="${db_url#jdbc:postgresql:}"
+                db_name="${db_name%%\?*}"
+              fi
+
+              if [ "$db_host" != "localhost" ] && [ "$db_host" != "127.0.0.1" ]; then
+                echo "Skipping local PostgreSQL setup for datasource host: $db_host"
+                return
+              fi
+
+              if [[ ! "$db_user" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || [[ ! "$db_name" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+                echo "Refusing to manage PostgreSQL role/database with unsafe names: user=$db_user database=$db_name"
+                exit 1
+              fi
+
+              sudo apt-get update
+              sudo DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql
+              sudo systemctl enable --now postgresql
+
+              escaped_password="${db_password//\'/\'\'}"
+              if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${db_user}'" | grep -q 1; then
+                sudo -u postgres psql -c "ALTER ROLE ${db_user} WITH LOGIN PASSWORD '${escaped_password}';"
+              else
+                sudo -u postgres psql -c "CREATE ROLE ${db_user} WITH LOGIN PASSWORD '${escaped_password}';"
+              fi
+
+              if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'" | grep -q 1; then
+                sudo -u postgres createdb -O "$db_user" "$db_name"
+              fi
+
+              sudo -u postgres psql -d "$db_name" -c "ALTER SCHEMA public OWNER TO ${db_user}; GRANT ALL ON SCHEMA public TO ${db_user};"
+
+              set_nightout_env SERVER_PORT 8080
+              set_nightout_env SPRING_DATASOURCE_URL "jdbc:postgresql://localhost:5432/${db_name}"
+              set_nightout_env SPRING_DATASOURCE_USERNAME "$db_user"
+              set_nightout_env SPRING_DATASOURCE_PASSWORD "$db_password"
+              set_nightout_env SPRING_DATASOURCE_DRIVER_CLASS_NAME org.postgresql.Driver
+              set_nightout_env SPRING_JPA_DATABASE_PLATFORM org.hibernate.dialect.PostgreSQLDialect
+              set_nightout_env SPRING_SQL_INIT_MODE never
+              set_nightout_env SPRING_BATCH_JDBC_INITIALIZE_SCHEMA never
+              set_nightout_env SPRING_SESSION_JDBC_INITIALIZE_SCHEMA never
+              set_nightout_env SPRING_FLYWAY_SCHEMAS public
+              set_nightout_env NIGHTOUT_SCHEMA_RESET_ALLOWED false
+            }
+
+            install_temurin_jre
+            ensure_local_postgres
 
             sudo install -o root -g root -m 0644 /tmp/nightout.service /etc/systemd/system/nightout.service
             sudo install -o nightout -g nightout -m 0644 /tmp/nightout.jar /opt/nightout/nightout.jar

@@ -81,15 +81,38 @@ fi
 
 echo
 echo "NightOut status:"
-sudo systemctl status nightout --no-pager -l | sed -n '1,80p'
+sudo systemctl status nightout --no-pager -l | sed -n '1,80p' || true
 
 echo
 echo "Recent NightOut logs:"
-sudo journalctl -u nightout -n 120 --no-pager -o cat
+sudo journalctl -u nightout -n 120 --no-pager -o cat || true
 
 echo
 echo "Local port check:"
 sudo ss -lntp | grep -E ':(80|443|4000|5173|8080)\b' || true
+
+if ! command -v curl >/dev/null 2>&1; then
+  sudo apt-get update
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y curl
+fi
+
+echo
+echo "Waiting for NightOut to answer on http://127.0.0.1:8080"
+nightout_ready=false
+for _ in {1..30}; do
+  if curl -fsS --max-time 3 http://127.0.0.1:8080/ >/dev/null; then
+    nightout_ready=true
+    break
+  fi
+  sleep 2
+done
+
+if [ "${nightout_ready}" != true ]; then
+  echo "NightOut did not answer on port 8080."
+  sudo systemctl status nightout --no-pager -l | sed -n '1,120p' || true
+  sudo journalctl -u nightout -n 160 --no-pager -o cat || true
+  exit 1
+fi
 
 echo
 echo "External checks to run from your laptop:"
