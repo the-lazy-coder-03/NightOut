@@ -13,6 +13,7 @@ import example.org.nightout.storage.StorageService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -140,8 +141,9 @@ public class PhotoService {
         }
         ImageType imageType = detectImageType(bytes, multipartFile.getOriginalFilename(), multipartFile.getContentType());
         String originalFilename = safeOriginalFilename(multipartFile.getOriginalFilename());
-        String safeFilename = event.getClub().getSlug() + "-" + event.getEventDate() + "-" + UUID.randomUUID() + "." + imageType.extension();
-        StorageFile stored = storageService.upload(bytes, safeFilename, imageType.mimeType(), event.getClub().getStorageFolderId());
+        String objectFilename = UUID.randomUUID() + "." + imageType.extension();
+        String safeFilename = event.getClub().getSlug() + "-" + event.getEventDate() + "-" + objectFilename;
+        StorageFile stored = storageService.upload(bytes, objectFilename, imageType.mimeType(), storagePrefix(event));
 
         Photo photo = new Photo();
         photo.setEvent(event);
@@ -153,6 +155,14 @@ public class PhotoService {
         photo.setStatus(PhotoStatus.APPROVED);
         photo.setUploadedAt(Instant.now());
         return photoRepository.save(photo);
+    }
+
+    private static String storagePrefix(NightEvent event) {
+        String clubPrefix = event.getClub().getStorageFolderId();
+        if (!StringUtils.hasText(clubPrefix)) {
+            clubPrefix = "clubs/" + event.getClub().getSlug();
+        }
+        return clubPrefix + "/" + event.getEventDate();
     }
 
     private static ImageType detectImageType(byte[] bytes, String filename, String contentType) {

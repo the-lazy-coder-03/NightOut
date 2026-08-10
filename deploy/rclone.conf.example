@@ -1,0 +1,15 @@
+[drive_primary]
+type = drive
+scope = drive
+# Configure this remote with `rclone config` or inject the token securely with
+# RCLONE_CONFIG_DRIVE_PRIMARY_TOKEN. Do not commit OAuth tokens.
+
+[drive_secondary]
+type = drive
+scope = drive
+# Optional second Google Drive account for union storage.
+
+[nightout_union]
+type = union
+upstreams = drive_primary:NightOut drive_secondary:NightOut
+create_policy = mfs

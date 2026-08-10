@@ -1,0 +1,17 @@
+[Unit]
+Description=NightOut rclone S3 gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nightout
+Group=nightout
+EnvironmentFile=/etc/nightout/nightout.env
+Environment=RCLONE_CONFIG=/etc/rclone/rclone.conf
+ExecStart=/usr/bin/rclone serve s3 ${RCLONE_REMOTE} --addr 127.0.0.1:8080 --auth-key ${NIGHTOUT_S3_ACCESS_KEY},${NIGHTOUT_S3_SECRET_KEY} --vfs-cache-mode writes
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

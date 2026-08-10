@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "nightout")
 public class AppProperties {
 
-    private String baseUrl = "http://localhost:8080";
+    private String baseUrl = "http://localhost:8090";
     private String timeZone = "Africa/Johannesburg";
     private int retentionDays = 7;
     private long maxUploadBytes = 10 * 1024 * 1024;
@@ -15,7 +15,7 @@ public class AppProperties {
     private boolean seedDemo = true;
     private String schemaVersion = "1";
     private boolean schemaResetAllowed;
-    private NineDrive nineDrive = new NineDrive();
+    private S3 s3 = new S3();
 
     public String getBaseUrl() {
         return baseUrl;
@@ -97,59 +97,68 @@ public class AppProperties {
         this.schemaResetAllowed = schemaResetAllowed;
     }
 
-    public NineDrive getNineDrive() {
-        return nineDrive;
+    public S3 getS3() {
+        return s3;
     }
 
-    public void setNineDrive(NineDrive nineDrive) {
-        this.nineDrive = nineDrive;
+    public void setS3(S3 s3) {
+        this.s3 = s3;
     }
 
-    public static class NineDrive {
-        private String baseUrl = "http://localhost:4000";
-        private String apiKey = "";
-        private String email = "";
-        private String password = "";
-        private String folderId = "";
+    public static class S3 {
+        private String endpoint = "http://127.0.0.1:8080";
+        private String bucket = "nightout";
+        private String region = "us-east-1";
+        private String accessKey = "";
+        private String secretKey = "";
+        private boolean pathStyle = true;
 
-        public String getBaseUrl() {
-            return baseUrl;
+        public String getEndpoint() {
+            return endpoint;
         }
 
-        public void setBaseUrl(String baseUrl) {
-            this.baseUrl = baseUrl;
+        public void setEndpoint(String endpoint) {
+            this.endpoint = endpoint;
         }
 
-        public String getApiKey() {
-            return apiKey;
+        public String getBucket() {
+            return bucket;
         }
 
-        public void setApiKey(String apiKey) {
-            this.apiKey = apiKey;
+        public void setBucket(String bucket) {
+            this.bucket = bucket;
         }
 
-        public String getEmail() {
-            return email;
+        public String getRegion() {
+            return region;
         }
 
-        public void setEmail(String email) {
-            this.email = email;
+        public void setRegion(String region) {
+            this.region = region;
         }
 
-        public String getPassword() {
-            return password;
+        public String getAccessKey() {
+            return accessKey;
         }
 
-        public void setPassword(String password) {
-            this.password = password;
+        public void setAccessKey(String accessKey) {
+            this.accessKey = accessKey;
         }
 
-        public String getFolderId() {
-            return folderId;
+        public String getSecretKey() {
+            return secretKey;
         }
 
-        public void setFolderId(String folderId) {
-            this.folderId = folderId;
+        public void setSecretKey(String secretKey) {
+            this.secretKey = secretKey;
+        }
+
+        public boolean isPathStyle() {
+            return pathStyle;
+        }
+
+        public void setPathStyle(boolean pathStyle) {
+            this.pathStyle = pathStyle;
         }
     }
 }

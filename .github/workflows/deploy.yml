@@ -211,6 +211,24 @@ jobs:
                 sudo sed -n "s/^${key}=//p" /etc/nightout/nightout.env | tail -n 1
               }
 
+              ensure_env_secret() {
+                key="$1"
+                current_value="$(env_value "$key")"
+                case "$current_value" in
+                  ""|change-me|replace-with-random-access-key|replace-with-random-secret-key)
+                    set_nightout_env "$key" "$(python3 -c 'import secrets; print(secrets.token_urlsafe(32).replace(",", "_"))')"
+                    ;;
+                esac
+              }
+
+              set_nightout_env_if_missing() {
+                key="$1"
+                value="$2"
+                if [ -z "$(env_value "$key")" ]; then
+                  set_nightout_env "$key" "$value"
+                fi
+              }
+
               db_url="$(env_value SPRING_DATASOURCE_URL)"
               db_user="$(env_value SPRING_DATASOURCE_USERNAME)"
               db_password="$(env_value SPRING_DATASOURCE_PASSWORD)"
@@ -260,7 +278,7 @@ jobs:
 
               sudo -u postgres psql -d "$db_name" -c "ALTER SCHEMA public OWNER TO ${db_user}; GRANT ALL ON SCHEMA public TO ${db_user};"
 
-              set_nightout_env SERVER_PORT 8080
+              set_nightout_env SERVER_PORT 8090
               set_nightout_env SPRING_DATASOURCE_URL "jdbc:postgresql://localhost:5432/${db_name}"
               set_nightout_env SPRING_DATASOURCE_USERNAME "$db_user"
               set_nightout_env SPRING_DATASOURCE_PASSWORD "$db_password"
@@ -272,8 +290,14 @@ jobs:
               set_nightout_env SPRING_FLYWAY_SCHEMAS public
               set_nightout_env NIGHTOUT_SCHEMA_RESET_ALLOWED false
               set_nightout_env NIGHTOUT_TIME_ZONE Africa/Johannesburg
-              set_nightout_env NIGHTOUT_STORAGE_PROVIDER 9drive
-              set_nightout_env NIGHTOUT_9DRIVE_BASE_URL https://drive.primepick.co.za
+              set_nightout_env NIGHTOUT_STORAGE_PROVIDER s3
+              set_nightout_env NIGHTOUT_S3_ENDPOINT http://127.0.0.1:8080
+              set_nightout_env NIGHTOUT_S3_BUCKET nightout
+              set_nightout_env NIGHTOUT_S3_REGION us-east-1
+              set_nightout_env NIGHTOUT_S3_PATH_STYLE true
+              ensure_env_secret NIGHTOUT_S3_ACCESS_KEY
+              ensure_env_secret NIGHTOUT_S3_SECRET_KEY
+              set_nightout_env_if_missing RCLONE_REMOTE drive_primary:
             }
 
             install_temurin_jre

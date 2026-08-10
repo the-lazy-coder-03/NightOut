@@ -14,19 +14,22 @@ NightOut is a Spring Boot nightlife photo-sharing MVP. Public visitors choose a 
 - Thymeleaf
 - HTML, CSS, and JavaScript
 - Maven
-- 9Drive storage gateway for Google Drive/S3-backed file storage
+- Rclone S3 gateway for Google Drive-backed file storage
 
 ## Storage Model
 
 PostgreSQL is the source of truth for clubs, events, users, and photo metadata. Photo binaries are never stored in PostgreSQL.
 
-This app stores uploaded image bytes through a `StorageService` abstraction. The production provider is `9drive`, which calls the 9Drive gateway:
+This app stores uploaded image bytes through a `StorageService` abstraction. The production provider is `s3`, which calls `rclone serve s3` through the AWS SDK for Java:
 
-- Upload: `POST /api/v1/uploads` with a bearer API key.
-- Download: server-side authenticated `GET /files/{id}/download`.
-- Cleanup/delete: server-side authenticated 9Drive file delete and permanent delete endpoints.
+- Upload: `PutObject`
+- Download/view: `GetObject`
+- Cleanup/delete: `DeleteObject`
+- Checks/listing: `HeadObject` and `ListObjectsV2`
 
-For local development and automated tests, `NIGHTOUT_STORAGE_PROVIDER=local` stores files on disk under `NIGHTOUT_LOCAL_STORAGE_PATH`.
+For local development and automated tests, `NIGHTOUT_STORAGE_PROVIDER=local` stores files on disk under `NIGHTOUT_LOCAL_STORAGE_PATH`. New production uploads store the S3 object key in `photos.storage_file_id`.
+
+Existing rows from older storage providers are not migrated automatically. Reupload or manually migrate those records if they need to render through the S3 gateway.
 
 ## Configuration
 
@@ -46,21 +49,25 @@ SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
 SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
 ```
 
-Required 9Drive values for production storage:
+Required S3/rclone values for production storage:
 
 ```properties
-NIGHTOUT_STORAGE_PROVIDER=9drive
-NIGHTOUT_9DRIVE_BASE_URL=https://your-9drive.example.com
-NIGHTOUT_9DRIVE_API_KEY=9d_live_...
-NIGHTOUT_9DRIVE_EMAIL=storage-account@example.com
-NIGHTOUT_9DRIVE_PASSWORD=change-me
-NIGHTOUT_9DRIVE_FOLDER_ID=
+NIGHTOUT_STORAGE_PROVIDER=s3
+NIGHTOUT_S3_ENDPOINT=http://127.0.0.1:8080
+NIGHTOUT_S3_BUCKET=nightout
+NIGHTOUT_S3_REGION=us-east-1
+NIGHTOUT_S3_ACCESS_KEY=replace-with-random-access-key
+NIGHTOUT_S3_SECRET_KEY=replace-with-random-secret-key
+NIGHTOUT_S3_PATH_STYLE=true
+RCLONE_REMOTE=drive_primary:
 ```
+
+Rclone must bind its S3 server to localhost and require authentication. See `deploy/rclone-s3.md` for Google Drive and optional union backend examples.
 
 Use `NIGHTOUT_BASE_URL` for generated QR codes, for example:
 
 ```properties
-NIGHTOUT_BASE_URL=https://localmarketeca.duckdns.org
+NIGHTOUT_BASE_URL=https://primepick.co.za
 ```
 
 ## Database
@@ -133,4 +140,4 @@ Each club has a permanent QR code that points to `/clubs/{slug}`. The QR code do
 
 GitHub Actions builds with Maven and deploys the jar to EC2 when `EC2_SSH_KEY` is configured. Production runtime variables live in `/etc/nightout/nightout.env`; see `deploy/nightout.env.example`.
 
-The production app expects PostgreSQL and a reachable 9Drive deployment. Do not commit secrets, API keys, OAuth credentials, or real database passwords.
+The production app expects PostgreSQL and a reachable localhost rclone S3 gateway. Do not commit secrets, API keys, OAuth credentials, or real database passwords.
