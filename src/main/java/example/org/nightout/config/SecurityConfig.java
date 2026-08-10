@@ -34,6 +34,12 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/dashboard", true)
                         .permitAll()
                 )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(
+                                "/clubs/*/dates/*/upload",
+                                "/clubs/*/events/*/upload"
+                        )
+                )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/")

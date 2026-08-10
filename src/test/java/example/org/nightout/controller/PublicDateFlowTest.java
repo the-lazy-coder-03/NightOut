@@ -157,6 +157,17 @@ class PublicDateFlowTest {
     }
 
     @Test
+    void datePageUploadDoesNotRequireCsrf() throws Exception {
+        MockMultipartFile text = new MockMultipartFile("photos", "notes.txt", "text/plain", "not an image".getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/clubs/halo/dates/2026-08-06/upload")
+                        .file(text))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clubs/halo/dates/2026-08-06"))
+                .andExpect(flash().attribute("errorMessage", "Only JPEG, PNG, and WebP images can be uploaded."));
+    }
+
+    @Test
     void eventUploadCanStillReturnToDateGalleryWhenRequested() throws Exception {
         mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
                         .file(jpeg("inline-event.jpg"))
@@ -172,6 +183,14 @@ class PublicDateFlowTest {
         mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
                         .file(jpeg("event.jpg"))
                         .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clubs/halo/events/" + haloFriday.getId() + "/gallery"));
+    }
+
+    @Test
+    void eventPageUploadDoesNotRequireCsrf() throws Exception {
+        mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
+                        .file(jpeg("event-no-csrf.jpg")))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/clubs/halo/events/" + haloFriday.getId() + "/gallery"));
     }
