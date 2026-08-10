@@ -42,6 +42,8 @@ Required PostgreSQL values:
 SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/nightout
 SPRING_DATASOURCE_USERNAME=nightout
 SPRING_DATASOURCE_PASSWORD=change-me
+SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
 ```
 
 Required 9Drive values for production storage:
@@ -69,9 +71,22 @@ Create the PostgreSQL database and user:
 CREATE DATABASE nightout;
 CREATE USER nightout WITH PASSWORD 'change-me';
 GRANT ALL PRIVILEGES ON DATABASE nightout TO nightout;
+\c nightout
+GRANT ALL ON SCHEMA public TO nightout;
+ALTER SCHEMA public OWNER TO nightout;
 ```
 
 Flyway creates the application tables at startup from `src/main/resources/db/migration`.
+
+The app also supports an explicit destructive schema reset. It records `NIGHTOUT_SCHEMA_VERSION` in the database. If you change that value and set `NIGHTOUT_SCHEMA_RESET_ALLOWED=true`, startup drops the configured Flyway schema and rebuilds it from the SQL migrations:
+
+```properties
+NIGHTOUT_SCHEMA_VERSION=2
+NIGHTOUT_SCHEMA_RESET_ALLOWED=true
+SPRING_FLYWAY_SCHEMAS=public
+```
+
+After the reset succeeds, keep the new version and set `NIGHTOUT_SCHEMA_RESET_ALLOWED=false`.
 
 ## Run Locally
 

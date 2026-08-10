@@ -12,6 +12,8 @@ public class AppProperties {
     private String storageProvider = "local";
     private String localStoragePath = "./storage/nightout";
     private boolean seedDemo = true;
+    private String schemaVersion = "1";
+    private boolean schemaResetAllowed;
     private NineDrive nineDrive = new NineDrive();
 
     public String getBaseUrl() {
@@ -68,6 +70,22 @@ public class AppProperties {
 
     public void setSeedDemo(boolean seedDemo) {
         this.seedDemo = seedDemo;
+    }
+
+    public String getSchemaVersion() {
+        return schemaVersion;
+    }
+
+    public void setSchemaVersion(String schemaVersion) {
+        this.schemaVersion = schemaVersion;
+    }
+
+    public boolean isSchemaResetAllowed() {
+        return schemaResetAllowed;
+    }
+
+    public void setSchemaResetAllowed(boolean schemaResetAllowed) {
+        this.schemaResetAllowed = schemaResetAllowed;
     }
 
     public NineDrive getNineDrive() {

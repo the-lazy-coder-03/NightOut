@@ -27,6 +27,10 @@ Required production values:
 - `SPRING_DATASOURCE_URL`
 - `SPRING_DATASOURCE_USERNAME`
 - `SPRING_DATASOURCE_PASSWORD`
+- `SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver`
+- `SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect`
+- `NIGHTOUT_SCHEMA_VERSION`
+- `NIGHTOUT_SCHEMA_RESET_ALLOWED=false`
 - `NIGHTOUT_BASE_URL`
 - `NIGHTOUT_STORAGE_PROVIDER=9drive`
 - `NIGHTOUT_9DRIVE_BASE_URL`
@@ -35,5 +39,7 @@ Required production values:
 - `NIGHTOUT_9DRIVE_PASSWORD`
 
 The 9Drive API key is used for `POST /api/v1/uploads`. The email/password are used server-side for streaming `/files/{id}/download` and permanent cleanup through the 9Drive file endpoints.
+
+If `NIGHTOUT_SCHEMA_VERSION` changes and `NIGHTOUT_SCHEMA_RESET_ALLOWED=true`, app startup drops and rebuilds the configured Flyway schema. Leave reset allowed as `false` unless you intentionally want to erase the current database tables.
 
 For local runs from the project root, Spring imports `.env` automatically. Keep `.env` uncommitted; use `.env.example` as the shape of the file.
