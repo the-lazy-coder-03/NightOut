@@ -62,6 +62,7 @@ public class PublicController {
         model.addAttribute("nightDate", nightDate);
         model.addAttribute("events", events);
         model.addAttribute("uploadEvents", events.stream().filter(EventView::uploadAvailable).toList());
+        model.addAttribute("dateUploadAvailable", eventService.uploadAvailableForDate(nightDate));
         model.addAttribute("photos", photoService.galleryPhotosForEvents(events.stream().map(EventView::event).toList()));
         return "date-gallery";
     }
@@ -111,6 +112,23 @@ public class PublicController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             return uploadRedirect(slug, eventId, returnDate, true);
         }
+    }
+
+    @PostMapping("/clubs/{slug}/dates/{nightDate}/upload")
+    public String handleDateUpload(
+            @PathVariable String slug,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate nightDate,
+            @RequestParam(value = "eventId", required = false) Long eventId,
+            @RequestParam("photos") MultipartFile[] photos,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            int count = photoService.uploadPhotosForDate(slug, nightDate, eventId, photos).size();
+            redirectAttributes.addFlashAttribute("successMessage", count + " photo" + (count == 1 ? "" : "s") + " uploaded successfully.");
+        } catch (BusinessRuleException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/clubs/" + slug + "/dates/" + nightDate;
     }
 
     private static String uploadRedirect(String slug, Long eventId, LocalDate returnDate, boolean failed) {

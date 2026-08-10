@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -42,6 +43,16 @@ public class PhotoService {
     @Transactional
     public List<Photo> uploadPhotos(String clubSlug, Long eventId, MultipartFile[] files) {
         NightEvent event = eventService.requirePublicEvent(clubSlug, eventId);
+        return uploadPhotos(event, files);
+    }
+
+    @Transactional
+    public List<Photo> uploadPhotosForDate(String clubSlug, LocalDate date, Long eventId, MultipartFile[] files) {
+        NightEvent event = eventService.uploadTargetForClubDate(clubSlug, date, eventId);
+        return uploadPhotos(event, files);
+    }
+
+    private List<Photo> uploadPhotos(NightEvent event, MultipartFile[] files) {
         policyService.requireUploadAvailable(event);
 
         List<MultipartFile> submittedFiles = Arrays.stream(files == null ? new MultipartFile[0] : files)

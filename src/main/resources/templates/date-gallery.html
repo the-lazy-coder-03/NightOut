@@ -25,7 +25,7 @@
     <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Upload unavailable.</div>
 
     <section class="section">
-        <div class="upload-bar" th:if="${!#lists.isEmpty(uploadEvents)}">
+        <div class="upload-bar" th:if="${dateUploadAvailable}">
             <button class="button" type="button" data-upload-dialog-open>Upload</button>
         </div>
         <div th:if="${#lists.isEmpty(photos)}" class="empty">No pictures have been uploaded for this date yet.</div>
@@ -36,20 +36,20 @@
         </div>
     </section>
 
-    <dialog class="upload-dialog" data-upload-dialog th:if="${!#lists.isEmpty(uploadEvents)}">
+    <dialog class="upload-dialog" data-upload-dialog th:if="${dateUploadAvailable}">
         <div class="upload-dialog-panel">
             <div class="upload-dialog-head">
                 <h2>Upload</h2>
                 <button class="icon-button" type="button" data-upload-dialog-close aria-label="Close">&times;</button>
             </div>
             <form class="upload-choice-form" method="post" enctype="multipart/form-data" data-upload-form data-upload-choice-form
-                  th:action="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${uploadEvents[0].event.id})}">
-                <input type="hidden" name="returnDate" th:value="${nightDate}">
+                  th:action="@{/clubs/{slug}/dates/{date}/upload(slug=${club.slug},date=${nightDate})}">
+                <input th:if="${#lists.size(uploadEvents) == 1}" type="hidden" name="eventId" th:value="${uploadEvents[0].event.id}">
                 <label th:if="${#lists.size(uploadEvents) > 1}">
                     Choose Night
-                    <select data-upload-event-select>
+                    <select name="eventId">
                         <option th:each="item : ${uploadEvents}"
-                                th:value="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${item.event.id})}"
+                                th:value="${item.event.id}"
                                 th:text="${item.event.eventName}">Main floor</option>
                     </select>
                 </label>

@@ -70,6 +70,28 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    public boolean uploadAvailableForDate(LocalDate date) {
+        return policyService.uploadAvailable(date);
+    }
+
+    @Transactional
+    public NightEvent uploadTargetForClubDate(String clubSlug, LocalDate date, Long eventId) {
+        if (eventId != null) {
+            NightEvent event = requirePublicEvent(clubSlug, eventId);
+            if (!event.getEventDate().equals(date)) {
+                throw new ResourceNotFoundException("Night not found.");
+            }
+            return event;
+        }
+
+        Club club = clubService.requireActiveBySlug(clubSlug);
+        return eventRepository.findByClubAndCancelledFalseAndEventDateOrderByStartTimeAsc(club, date).stream()
+                .filter(policyService::uploadAvailable)
+                .findFirst()
+                .orElseGet(() -> createDefaultUploadEvent(club, date));
+    }
+
+    @Transactional(readOnly = true)
     public NightEvent requirePublicEvent(String clubSlug, Long eventId) {
         return eventRepository.findByIdAndClubSlug(eventId, clubSlug)
                 .filter(event -> event.getClub().isActive())
@@ -133,5 +155,13 @@ public class EventService {
         event.setEventDate(eventDate);
         event.setStartTime(startTime);
         event.setEndTime(endTime);
+    }
+
+    private NightEvent createDefaultUploadEvent(Club club, LocalDate date) {
+        policyService.requireUploadAvailable(date);
+        NightEvent event = new NightEvent();
+        event.setClub(club);
+        apply(event, "Night Out", date, LocalTime.of(22, 0), LocalTime.of(3, 0));
+        return eventRepository.save(event);
     }
 }

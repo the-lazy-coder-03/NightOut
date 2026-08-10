@@ -3,8 +3,6 @@ const fileInputs = Array.from(document.querySelectorAll("[data-photo-input]"));
 const uploadDialog = document.querySelector("[data-upload-dialog]");
 const openUploadDialogButton = document.querySelector("[data-upload-dialog-open]");
 const closeUploadDialogButton = document.querySelector("[data-upload-dialog-close]");
-const uploadChoiceForm = document.querySelector("[data-upload-choice-form]");
-const uploadEventSelect = document.querySelector("[data-upload-event-select]");
 
 fileInputs.forEach((fileInput) => {
     fileInput.addEventListener("change", () => {
@@ -67,11 +65,5 @@ uploadDialog?.addEventListener("click", (event) => {
         } else {
             uploadDialog.removeAttribute("open");
         }
-    }
-});
-
-uploadEventSelect?.addEventListener("change", () => {
-    if (uploadChoiceForm && uploadEventSelect.value) {
-        uploadChoiceForm.action = uploadEventSelect.value;
     }
 });

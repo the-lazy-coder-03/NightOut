@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -107,7 +108,8 @@ class PublicDateFlowTest {
                 .andExpect(content().string(containsString("capture=\"environment\"")))
                 .andExpect(content().string(containsString("accept=\"image/jpeg,image/png,image/webp\"")))
                 .andExpect(content().string(containsString("multiple")))
-                .andExpect(content().string(containsString("name=\"returnDate\" value=\"2026-08-07\"")))
+                .andExpect(content().string(containsString("action=\"/clubs/halo/dates/2026-08-07/upload\"")))
+                .andExpect(content().string(containsString("name=\"eventId\"")))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -123,31 +125,46 @@ class PublicDateFlowTest {
         mockMvc.perform(get("/clubs/halo/dates/2026-08-06"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("No pictures have been uploaded for this date yet.")))
-                .andExpect(content().string(not(containsString("data-upload-dialog-open"))));
+                .andExpect(content().string(containsString("data-upload-dialog-open")))
+                .andExpect(content().string(containsString("action=\"/clubs/halo/dates/2026-08-06/upload\"")))
+                .andExpect(content().string(not(containsString("name=\"eventId\""))));
     }
 
     @Test
-    void datePageUploadRedirectsBackToDateGalleryOnSuccess() throws Exception {
-        mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
+    void datePageUploadRedirectsBackToDateGalleryAndCreatesUploadTargetOnSuccess() throws Exception {
+        mockMvc.perform(multipart("/clubs/halo/dates/2026-08-06/upload")
                         .file(jpeg("inline.jpg"))
-                        .param("returnDate", "2026-08-07")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/clubs/halo/dates/2026-08-07"))
+                .andExpect(redirectedUrl("/clubs/halo/dates/2026-08-06"))
                 .andExpect(flash().attribute("successMessage", "1 photo uploaded successfully."));
+
+        List<NightEvent> events = eventRepository.findByClubAndCancelledFalseAndEventDateOrderByStartTimeAsc(halo, LocalDate.of(2026, 8, 6));
+        assertThat(events).hasSize(1);
+        assertThat(events.getFirst().getEventName()).isEqualTo("Night Out");
     }
 
     @Test
     void datePageUploadRedirectsBackToDateGalleryOnFailure() throws Exception {
         MockMultipartFile text = new MockMultipartFile("photos", "notes.txt", "text/plain", "not an image".getBytes(StandardCharsets.UTF_8));
 
-        mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
+        mockMvc.perform(multipart("/clubs/halo/dates/2026-08-06/upload")
                         .file(text)
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clubs/halo/dates/2026-08-06"))
+                .andExpect(flash().attribute("errorMessage", "Only JPEG, PNG, and WebP images can be uploaded."));
+    }
+
+    @Test
+    void eventUploadCanStillReturnToDateGalleryWhenRequested() throws Exception {
+        mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
+                        .file(jpeg("inline-event.jpg"))
                         .param("returnDate", "2026-08-07")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/clubs/halo/dates/2026-08-07"))
-                .andExpect(flash().attribute("errorMessage", "Only JPEG, PNG, and WebP images can be uploaded."));
+                .andExpect(flash().attribute("successMessage", "1 photo uploaded successfully."));
     }
 
     @Test

@@ -21,17 +21,30 @@ public class EventPolicyService {
     }
 
     public EventLifecycleStatus statusFor(NightEvent event) {
-        if (event.isCancelled()) {
+        return statusFor(event.getEventDate(), event.isCancelled());
+    }
+
+    public boolean uploadAvailable(LocalDate eventDate) {
+        EventLifecycleStatus status = statusFor(eventDate, false);
+        return status == EventLifecycleStatus.ACTIVE || status == EventLifecycleStatus.RECENT;
+    }
+
+    public void requireUploadAvailable(LocalDate eventDate) {
+        requireUploadAvailable(statusFor(eventDate, false));
+    }
+
+    private EventLifecycleStatus statusFor(LocalDate eventDate, boolean cancelled) {
+        if (cancelled) {
             return EventLifecycleStatus.CANCELLED;
         }
         LocalDate today = today();
-        if (event.getEventDate().isAfter(today)) {
+        if (eventDate.isAfter(today)) {
             return EventLifecycleStatus.UPCOMING;
         }
-        if (today.isAfter(expiresOn(event))) {
+        if (today.isAfter(eventDate.plusDays(properties.getRetentionDays()))) {
             return EventLifecycleStatus.EXPIRED;
         }
-        if (event.getEventDate().isEqual(today)) {
+        if (eventDate.isEqual(today)) {
             return EventLifecycleStatus.ACTIVE;
         }
         return EventLifecycleStatus.RECENT;
@@ -55,7 +68,10 @@ public class EventPolicyService {
     }
 
     public void requireUploadAvailable(NightEvent event) {
-        EventLifecycleStatus status = statusFor(event);
+        requireUploadAvailable(statusFor(event));
+    }
+
+    private static void requireUploadAvailable(EventLifecycleStatus status) {
         if (status == EventLifecycleStatus.UPCOMING) {
             throw new BusinessRuleException("This night has not happened yet.");
         }
