@@ -1,6 +1,6 @@
 # Nightout Deployment
 
-GitHub Actions builds the Spring Boot jar with Maven on pushes to `master` or `main`, then deploys it to the EC2 host at `3.8.201.115` when the `EC2_SSH_KEY` repository secret is configured.
+GitHub Actions builds the Spring Boot jar with Maven on pushes to `master` or `main`, then deploys it to the EC2 host at `13.41.33.158` when the `EC2_SSH_KEY` repository secret is configured.
 
 Required GitHub repository secret:
 
