@@ -100,15 +100,23 @@ public class PublicController {
             @PathVariable String slug,
             @PathVariable Long eventId,
             @RequestParam("photos") MultipartFile[] photos,
+            @RequestParam(value = "returnDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate returnDate,
             RedirectAttributes redirectAttributes
     ) {
         try {
             int count = photoService.uploadPhotos(slug, eventId, photos).size();
             redirectAttributes.addFlashAttribute("successMessage", count + " photo" + (count == 1 ? "" : "s") + " uploaded successfully.");
-            return "redirect:/clubs/" + slug + "/events/" + eventId + "/gallery";
+            return uploadRedirect(slug, eventId, returnDate, false);
         } catch (BusinessRuleException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/clubs/" + slug + "/events/" + eventId + "/upload";
+            return uploadRedirect(slug, eventId, returnDate, true);
         }
+    }
+
+    private static String uploadRedirect(String slug, Long eventId, LocalDate returnDate, boolean failed) {
+        if (returnDate != null) {
+            return "redirect:/clubs/" + slug + "/dates/" + returnDate;
+        }
+        return "redirect:/clubs/" + slug + "/events/" + eventId + (failed ? "/upload" : "/gallery");
     }
 }

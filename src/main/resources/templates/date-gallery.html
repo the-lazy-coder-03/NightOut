@@ -19,14 +19,15 @@
         <span class="eyebrow" th:text="${club.name}">Halo</span>
         <h1 th:text="${#temporals.format(nightDate, 'EEEE d MMMM yyyy')}">Friday 7 August 2026</h1>
         <p th:text="${club.address}">12 Loop Street</p>
-        <div class="actions" th:if="${!#lists.isEmpty(uploadEvents)}">
-            <a class="button" th:each="item : ${uploadEvents}"
-               th:href="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${item.event.id})}"
-               th:text="${#lists.size(uploadEvents) > 1 ? 'Upload for ' + item.event.eventName : 'Upload Photos'}">Upload Photos</a>
-        </div>
     </section>
 
+    <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Uploaded.</div>
+    <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Upload unavailable.</div>
+
     <section class="section">
+        <div class="upload-bar" th:if="${!#lists.isEmpty(uploadEvents)}">
+            <button class="button" type="button" data-upload-dialog-open>Upload</button>
+        </div>
         <div th:if="${#lists.isEmpty(photos)}" class="empty">No pictures have been uploaded for this date yet.</div>
         <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
             <button class="gallery-button" th:each="photo : ${photos}" th:attr="data-gallery-src=@{/photos/{id}(id=${photo.id})}" type="button">
@@ -34,6 +35,39 @@
             </button>
         </div>
     </section>
+
+    <dialog class="upload-dialog" data-upload-dialog th:if="${!#lists.isEmpty(uploadEvents)}">
+        <div class="upload-dialog-panel">
+            <div class="upload-dialog-head">
+                <h2>Upload</h2>
+                <button class="icon-button" type="button" data-upload-dialog-close aria-label="Close">&times;</button>
+            </div>
+            <form class="upload-choice-form" method="post" enctype="multipart/form-data" data-upload-form data-upload-choice-form
+                  th:action="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${uploadEvents[0].event.id})}">
+                <input type="hidden" name="returnDate" th:value="${nightDate}">
+                <label th:if="${#lists.size(uploadEvents) > 1}">
+                    Choose Night
+                    <select data-upload-event-select>
+                        <option th:each="item : ${uploadEvents}"
+                                th:value="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${item.event.id})}"
+                                th:text="${item.event.eventName}">Main floor</option>
+                    </select>
+                </label>
+                <div class="upload-choice-actions">
+                    <label class="button secondary upload-choice-button">
+                        Take Photo
+                        <input class="visually-hidden" data-photo-input data-auto-submit type="file" name="photos" accept="image/*" capture="environment">
+                    </label>
+                    <label class="button upload-choice-button">
+                        Upload From Device
+                        <input class="visually-hidden" data-photo-input data-auto-submit type="file" name="photos" accept="image/jpeg,image/png,image/webp" multiple>
+                    </label>
+                </div>
+                <p class="meta" data-photo-summary>No photos selected</p>
+                <button class="visually-hidden" data-upload-submit type="submit">Upload Photos</button>
+            </form>
+        </div>
+    </dialog>
 </main>
 <div class="lightbox" data-lightbox aria-hidden="true">
     <button class="close" type="button" data-lightbox-close aria-label="Close">&times;</button>
@@ -42,5 +76,6 @@
     <button class="next" type="button" data-lightbox-next aria-label="Next">›</button>
 </div>
 <script src="/js/gallery.js"></script>
+<script src="/js/upload.js"></script>
 </body>
 </html>

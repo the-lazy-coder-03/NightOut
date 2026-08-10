@@ -16,8 +16,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -28,7 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -92,10 +98,65 @@ class PublicDateFlowTest {
     }
 
     @Test
+    void dateGalleryShowsUploadButtonAbovePhotosAndPromptChoices() throws Exception {
+        String html = mockMvc.perform(get("/clubs/halo/dates/2026-08-07"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-upload-dialog-open")))
+                .andExpect(content().string(containsString("Take Photo")))
+                .andExpect(content().string(containsString("Upload From Device")))
+                .andExpect(content().string(containsString("capture=\"environment\"")))
+                .andExpect(content().string(containsString("accept=\"image/jpeg,image/png,image/webp\"")))
+                .andExpect(content().string(containsString("multiple")))
+                .andExpect(content().string(containsString("name=\"returnDate\" value=\"2026-08-07\"")))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(html).containsSubsequence(
+                "data-upload-dialog-open",
+                "class=\"gallery\""
+        );
+    }
+
+    @Test
     void dateGalleryWithNoPicturesRendersEmptyState() throws Exception {
         mockMvc.perform(get("/clubs/halo/dates/2026-08-06"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("No pictures have been uploaded for this date yet.")));
+                .andExpect(content().string(containsString("No pictures have been uploaded for this date yet.")))
+                .andExpect(content().string(not(containsString("data-upload-dialog-open"))));
+    }
+
+    @Test
+    void datePageUploadRedirectsBackToDateGalleryOnSuccess() throws Exception {
+        mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
+                        .file(jpeg("inline.jpg"))
+                        .param("returnDate", "2026-08-07")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clubs/halo/dates/2026-08-07"))
+                .andExpect(flash().attribute("successMessage", "1 photo uploaded successfully."));
+    }
+
+    @Test
+    void datePageUploadRedirectsBackToDateGalleryOnFailure() throws Exception {
+        MockMultipartFile text = new MockMultipartFile("photos", "notes.txt", "text/plain", "not an image".getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
+                        .file(text)
+                        .param("returnDate", "2026-08-07")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clubs/halo/dates/2026-08-07"))
+                .andExpect(flash().attribute("errorMessage", "Only JPEG, PNG, and WebP images can be uploaded."));
+    }
+
+    @Test
+    void eventPageUploadRedirectBehaviorIsUnchanged() throws Exception {
+        mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
+                        .file(jpeg("event.jpg"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clubs/halo/events/" + haloFriday.getId() + "/gallery"));
     }
 
     private Club saveClub(String name, String slug) {
@@ -127,6 +188,10 @@ class PublicDateFlowTest {
         photo.setStorageFileId(filename);
         photo.setStatus(status);
         return photoRepository.save(photo);
+    }
+
+    private MockMultipartFile jpeg(String filename) {
+        return new MockMultipartFile("photos", filename, "image/jpeg", new byte[]{(byte) 0xff, (byte) 0xd8, (byte) 0xff, 0x00});
     }
 
     @TestConfiguration
