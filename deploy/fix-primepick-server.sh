@@ -1,12 +1,35 @@
 #!/usr/bin/env bash
-set -u
+set -euo pipefail
 
 backup_dir="/root/nginx-backup-$(date +%Y%m%d%H%M%S)"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+site_config="${1:-}"
+
+if [ -z "${site_config}" ]; then
+  if [ -f "${script_dir}/primepick-nginx.conf" ]; then
+    site_config="${script_dir}/primepick-nginx.conf"
+  elif [ -f /tmp/primepick-nginx.conf ]; then
+    site_config="/tmp/primepick-nginx.conf"
+  else
+    echo "Could not find primepick-nginx.conf. Pass it as the first argument."
+    exit 1
+  fi
+fi
+
+if [ ! -f "${site_config}" ]; then
+  echo "Nginx site config does not exist: ${site_config}"
+  exit 1
+fi
 
 echo "Backing up current Nginx site config to ${backup_dir}"
 sudo mkdir -p "${backup_dir}"
 sudo cp -a /etc/nginx/sites-available "${backup_dir}/"
 sudo cp -a /etc/nginx/sites-enabled "${backup_dir}/"
+
+if ! command -v certbot >/dev/null 2>&1; then
+  sudo apt-get update
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y certbot python3-certbot-nginx
+fi
 
 if [ ! -f /etc/letsencrypt/live/primepick.co.za/fullchain.pem ]; then
   echo "Creating Let's Encrypt certificate for primepick.co.za and www.primepick.co.za"
@@ -15,86 +38,20 @@ if [ ! -f /etc/letsencrypt/live/primepick.co.za/fullchain.pem ]; then
 fi
 
 if [ ! -f /etc/letsencrypt/live/drive.primepick.co.za/fullchain.pem ]; then
-  echo "Missing /etc/letsencrypt/live/drive.primepick.co.za/fullchain.pem"
-  echo "Create that certificate first or adjust /etc/nginx/sites-available/primepick.conf."
-  exit 1
+  echo "Creating Let's Encrypt certificate for drive.primepick.co.za"
+  sudo certbot certonly --nginx --non-interactive --agree-tos --register-unsafely-without-email \
+    -d drive.primepick.co.za
 fi
 
-cat >/tmp/primepick.conf <<'NGINX'
-server {
-    listen 80;
-    listen [::]:80;
-    server_name primepick.co.za www.primepick.co.za drive.primepick.co.za;
+sudo install -o root -g root -m 0644 "${site_config}" /etc/nginx/sites-available/primepick.conf
 
-    return 301 https://$host$request_uri;
-}
+for site in default nightout nightout.conf 9drive 9drive.conf; do
+  enabled="/etc/nginx/sites-enabled/${site}"
+  if [ -e "${enabled}" ] || [ -L "${enabled}" ]; then
+    sudo mv "${enabled}" "${backup_dir}/disabled-${site}"
+  fi
+done
 
-server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-    server_name primepick.co.za www.primepick.co.za;
-
-    ssl_certificate /etc/letsencrypt/live/primepick.co.za/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/primepick.co.za/privkey.pem;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
-
-    client_max_body_size 50m;
-
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Port 443;
-        proxy_redirect off;
-    }
-}
-
-server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-    server_name drive.primepick.co.za;
-
-    ssl_certificate /etc/letsencrypt/live/drive.primepick.co.za/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/drive.primepick.co.za/privkey.pem;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
-
-    client_max_body_size 5g;
-
-    location ~ ^/(api|public|auth|api-keys|provider-configs|connected-accounts|storage|uploads|files|folders|invites|audit-logs|system)(/|$) {
-        proxy_pass http://127.0.0.1:4000;
-        proxy_http_version 1.1;
-        proxy_request_buffering off;
-        proxy_read_timeout 3600s;
-        proxy_send_timeout 3600s;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Port 443;
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:5173;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Port 443;
-    }
-}
-NGINX
-
-sudo install -o root -g root -m 0644 /tmp/primepick.conf /etc/nginx/sites-available/primepick.conf
-sudo rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/nightout /etc/nginx/sites-enabled/9drive
 sudo ln -sf /etc/nginx/sites-available/primepick.conf /etc/nginx/sites-enabled/primepick.conf
 
 if [ -f /etc/nightout/nightout.env ]; then

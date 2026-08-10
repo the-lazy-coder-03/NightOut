@@ -23,6 +23,7 @@ class SchemaVersionFlywayMigrationStrategyTest {
         strategy("1", false).migrate(flyway);
 
         assertThat(tableExists(flyway, "clubs")).isTrue();
+        assertThat(tableExists(flyway, "spring_session")).isTrue();
         assertThat(storedSchemaVersion(flyway)).isEqualTo("1");
     }
 
@@ -47,6 +48,7 @@ class SchemaVersionFlywayMigrationStrategyTest {
         strategy("2", true).migrate(flyway);
 
         assertThat(tableExists(flyway, "clubs")).isTrue();
+        assertThat(tableExists(flyway, "spring_session")).isTrue();
         assertThat(rowCount(flyway, "clubs")).isZero();
         assertThat(storedSchemaVersion(flyway)).isEqualTo("2");
     }

@@ -95,7 +95,11 @@ jobs:
         if: env.SSH_PRIVATE_KEY != ''
         run: |
           scp -i ~/.ssh/nightout_deploy_key -P "$EC2_PORT" \
-            dist/${APP_NAME}.jar deploy/nightout.service deploy/nightout.env.example \
+            dist/${APP_NAME}.jar \
+            deploy/nightout.service \
+            deploy/nightout.env.example \
+            deploy/primepick-nginx.conf \
+            deploy/fix-primepick-server.sh \
             "${EC2_USER}@${EC2_HOST}:/tmp/"
 
           ssh -i ~/.ssh/nightout_deploy_key -p "$EC2_PORT" "${EC2_USER}@${EC2_HOST}" <<'REMOTE'
@@ -118,10 +122,12 @@ jobs:
 
             sudo install -o root -g root -m 0644 /tmp/nightout.service /etc/systemd/system/nightout.service
             sudo install -o nightout -g nightout -m 0644 /tmp/nightout.jar /opt/nightout/nightout.jar
-            rm -f /tmp/nightout.jar /tmp/nightout.service /tmp/nightout.env.example
+            chmod +x /tmp/fix-primepick-server.sh
 
             sudo systemctl daemon-reload
             sudo systemctl enable nightout
             sudo systemctl restart nightout
+            /tmp/fix-primepick-server.sh /tmp/primepick-nginx.conf
+            rm -f /tmp/nightout.jar /tmp/nightout.service /tmp/nightout.env.example /tmp/primepick-nginx.conf /tmp/fix-primepick-server.sh
             sudo systemctl is-active --quiet nightout
           REMOTE
