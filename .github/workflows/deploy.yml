@@ -272,6 +272,8 @@ jobs:
               set_nightout_env SPRING_FLYWAY_SCHEMAS public
               set_nightout_env NIGHTOUT_SCHEMA_RESET_ALLOWED false
               set_nightout_env NIGHTOUT_TIME_ZONE Africa/Johannesburg
+              set_nightout_env NIGHTOUT_STORAGE_PROVIDER 9drive
+              set_nightout_env NIGHTOUT_9DRIVE_BASE_URL https://drive.primepick.co.za
             }
 
             install_temurin_jre

@@ -68,6 +68,7 @@ if [ -f /etc/nightout/nightout.env ]; then
   set_env SERVER_PORT 8080
   set_env NIGHTOUT_BASE_URL https://primepick.co.za
   set_env NIGHTOUT_TIME_ZONE Africa/Johannesburg
+  set_env NIGHTOUT_STORAGE_PROVIDER 9drive
   set_env NIGHTOUT_9DRIVE_BASE_URL https://drive.primepick.co.za
 fi
 

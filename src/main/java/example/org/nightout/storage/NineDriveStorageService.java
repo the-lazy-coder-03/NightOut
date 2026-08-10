@@ -37,14 +37,12 @@ public class NineDriveStorageService implements StorageService {
         }
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("sizeBytes", String.valueOf(content.length));
-        body.add("fileName", filename);
-        body.add("mimeType", mimeType);
         String targetFolderId = firstPresent(folderId, properties.getFolderId());
         if (!isBlank(targetFolderId)) {
             body.add("folderId", targetFolderId);
         }
-        body.add("file", new NamedByteArrayResource(content, filename));
+        body.add("filesMeta", filesMetaJson(filename, mimeType, content.length));
+        body.add("file-0", new NamedByteArrayResource(content, filename));
 
         try {
             NineDriveUploadResponse response = restClient.post()
@@ -62,6 +60,16 @@ public class NineDriveStorageService implements StorageService {
         } catch (HttpStatusCodeException ex) {
             throw new StorageException("9Drive upload failed: " + ex.getResponseBodyAsString(), ex);
         }
+    }
+
+    private String filesMetaJson(String filename, String mimeType, long sizeBytes) {
+        return "[{\"fieldName\":\"file-0\",\"fileName\":"
+                + jsonString(filename)
+                + ",\"mimeType\":"
+                + jsonString(mimeType)
+                + ",\"sizeBytes\":"
+                + jsonString(String.valueOf(sizeBytes))
+                + "}]";
     }
 
     @Override
@@ -175,6 +183,35 @@ public class NineDriveStorageService implements StorageService {
                 return fallback;
             }
         }
+    }
+
+    private static String jsonString(String value) {
+        if (value == null) {
+            return "\"\"";
+        }
+        StringBuilder escaped = new StringBuilder(value.length() + 2);
+        escaped.append('"');
+        for (int index = 0; index < value.length(); index++) {
+            char current = value.charAt(index);
+            switch (current) {
+                case '"' -> escaped.append("\\\"");
+                case '\\' -> escaped.append("\\\\");
+                case '\b' -> escaped.append("\\b");
+                case '\f' -> escaped.append("\\f");
+                case '\n' -> escaped.append("\\n");
+                case '\r' -> escaped.append("\\r");
+                case '\t' -> escaped.append("\\t");
+                default -> {
+                    if (current < 0x20) {
+                        escaped.append(String.format("\\u%04x", (int) current));
+                    } else {
+                        escaped.append(current);
+                    }
+                }
+            }
+        }
+        escaped.append('"');
+        return escaped.toString();
     }
 
     private static class NamedByteArrayResource extends ByteArrayResource {
