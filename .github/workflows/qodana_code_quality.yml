@@ -14,19 +14,24 @@ on:
 jobs:
   qodana:
     runs-on: ubuntu-latest
+    env:
+      QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
       checks: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+
+      - name: Skip Qodana without token
+        if: env.QODANA_TOKEN == ''
+        run: echo "QODANA_TOKEN is not configured; skipping Qodana scan."
+
       - name: 'Qodana Scan'
+        if: env.QODANA_TOKEN != ''
         uses: JetBrains/qodana-action@v2025.2
-        env:
-          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
         with:
           # When pr-mode is set to true, Qodana analyzes only the files that have been changed
           pr-mode: false

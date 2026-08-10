@@ -86,23 +86,68 @@ jobs:
       - name: Configure SSH
         if: env.SSH_PRIVATE_KEY != ''
         run: |
+          set -euo pipefail
+
           mkdir -p ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/nightout_deploy_key
           chmod 600 ~/.ssh/nightout_deploy_key
-          ssh-keyscan -p "$EC2_PORT" -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+          for attempt in 1 2 3 4 5; do
+            if ssh-keyscan -T 20 -p "$EC2_PORT" -H "$EC2_HOST" >> ~/.ssh/known_hosts; then
+              exit 0
+            fi
+            echo "ssh-keyscan failed for ${EC2_HOST}:${EC2_PORT}; retry ${attempt}/5"
+            sleep 10
+          done
+
+          echo "Could not reach ${EC2_HOST}:${EC2_PORT} from the GitHub runner."
+          exit 1
 
       - name: Deploy service
         if: env.SSH_PRIVATE_KEY != ''
         run: |
-          scp -i ~/.ssh/nightout_deploy_key -P "$EC2_PORT" \
-            dist/${APP_NAME}.jar \
-            deploy/nightout.service \
-            deploy/nightout.env.example \
-            deploy/primepick-nginx.conf \
-            deploy/fix-primepick-server.sh \
-            "${EC2_USER}@${EC2_HOST}:/tmp/"
+          set -euo pipefail
 
-          ssh -i ~/.ssh/nightout_deploy_key -p "$EC2_PORT" "${EC2_USER}@${EC2_HOST}" <<'REMOTE'
+          ssh_options=(
+            -i ~/.ssh/nightout_deploy_key
+            -o BatchMode=yes
+            -o ConnectTimeout=20
+            -o ServerAliveInterval=10
+            -o ServerAliveCountMax=3
+            -o StrictHostKeyChecking=yes
+          )
+
+          scp_options=(
+            -i ~/.ssh/nightout_deploy_key
+            -P "$EC2_PORT"
+            -o BatchMode=yes
+            -o ConnectTimeout=20
+            -o ServerAliveInterval=10
+            -o ServerAliveCountMax=3
+            -o StrictHostKeyChecking=yes
+          )
+
+          for attempt in 1 2 3; do
+            if scp "${scp_options[@]}" \
+              dist/${APP_NAME}.jar \
+              deploy/nightout.service \
+              deploy/nightout.env.example \
+              deploy/primepick-nginx.conf \
+              deploy/fix-primepick-server.sh \
+              "${EC2_USER}@${EC2_HOST}:/tmp/"; then
+              break
+            fi
+
+            if [ "$attempt" = 3 ]; then
+              echo "Failed to upload deployment files to ${EC2_HOST}."
+              exit 1
+            fi
+
+            echo "SCP upload failed; retry ${attempt}/3"
+            sleep 10
+          done
+
+          ssh "${ssh_options[@]}" -p "$EC2_PORT" "${EC2_USER}@${EC2_HOST}" <<'REMOTE'
             set -euo pipefail
 
             if ! id nightout >/dev/null 2>&1; then
