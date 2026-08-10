@@ -271,6 +271,7 @@ jobs:
               set_nightout_env SPRING_SESSION_JDBC_INITIALIZE_SCHEMA never
               set_nightout_env SPRING_FLYWAY_SCHEMAS public
               set_nightout_env NIGHTOUT_SCHEMA_RESET_ALLOWED false
+              set_nightout_env NIGHTOUT_TIME_ZONE Africa/Johannesburg
             }
 
             install_temurin_jre

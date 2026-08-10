@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AppProperties {
 
     private String baseUrl = "http://localhost:8080";
+    private String timeZone = "Africa/Johannesburg";
     private int retentionDays = 7;
     private long maxUploadBytes = 10 * 1024 * 1024;
     private int maxUploadCount = 12;
@@ -22,6 +23,14 @@ public class AppProperties {
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+    }
+
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
     }
 
     public int getRetentionDays() {

@@ -88,6 +88,8 @@ SPRING_FLYWAY_SCHEMAS=public
 
 After the reset succeeds, keep the new version and set `NIGHTOUT_SCHEMA_RESET_ALLOWED=false`.
 
+Night dates use `NIGHTOUT_TIME_ZONE` and roll over at noon. The default is `Africa/Johannesburg`, so a Friday night that ends early Saturday morning still appears under Friday until 12:00 PM Saturday.
+
 ## Run Locally
 
 ```sh
