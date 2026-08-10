@@ -47,7 +47,9 @@ jobs:
       - name: Stage application jar
         run: |
           mkdir -p dist
-          cp build/libs/*.jar dist/${APP_NAME}.jar
+          jar_file=$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' | head -n 1)
+          test -n "$jar_file"
+          cp "$jar_file" dist/${APP_NAME}.jar
 
       - name: Upload application jar
         uses: actions/upload-artifact@v4
