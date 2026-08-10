@@ -7,18 +7,17 @@ import example.org.nightout.exception.BusinessRuleException;
 
 import org.springframework.stereotype.Service;
 
-import java.time.Clock;
 import java.time.LocalDate;
 
 @Service
 public class EventPolicyService {
 
     private final AppProperties properties;
-    private final Clock clock;
+    private final NightlifeDateService nightlifeDateService;
 
-    public EventPolicyService(AppProperties properties, Clock clock) {
+    public EventPolicyService(AppProperties properties, NightlifeDateService nightlifeDateService) {
         this.properties = properties;
-        this.clock = clock;
+        this.nightlifeDateService = nightlifeDateService;
     }
 
     public EventLifecycleStatus statusFor(NightEvent event) {
@@ -82,6 +81,6 @@ public class EventPolicyService {
     }
 
     private LocalDate today() {
-        return LocalDate.now(clock);
+        return nightlifeDateService.currentNightDate();
     }
 }

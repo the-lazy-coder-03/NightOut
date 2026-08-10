@@ -16,6 +16,9 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
 
     List<Photo> findByEventAndStatusOrderByUploadedAtDesc(NightEvent event, PhotoStatus status);
 
+    @EntityGraph(attributePaths = {"event", "event.club"})
+    List<Photo> findByEventInAndStatusOrderByUploadedAtDesc(List<NightEvent> events, PhotoStatus status);
+
     List<Photo> findByEvent_EventDateBefore(LocalDate cutoffDate);
 
     @EntityGraph(attributePaths = {"event", "event.club"})

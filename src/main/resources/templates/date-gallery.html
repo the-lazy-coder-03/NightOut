@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${club.name} + ' Pictures | NightOut'">Pictures | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">NightOut</a>
+    <nav class="nav">
+        <a th:href="@{/clubs/{slug}(slug=${club.slug})}">Dates</a>
+        <a href="/login">Club login</a>
+    </nav>
+</header>
+<main class="shell">
+    <section class="hero">
+        <span class="eyebrow" th:text="${club.name}">Halo</span>
+        <h1 th:text="${#temporals.format(nightDate, 'EEEE d MMMM yyyy')}">Friday 7 August 2026</h1>
+        <p th:text="${club.address}">12 Loop Street</p>
+        <div class="actions" th:if="${!#lists.isEmpty(uploadEvents)}">
+            <a class="button" th:each="item : ${uploadEvents}"
+               th:href="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${item.event.id})}"
+               th:text="${#lists.size(uploadEvents) > 1 ? 'Upload for ' + item.event.eventName : 'Upload Photos'}">Upload Photos</a>
+        </div>
+    </section>
+
+    <section class="section">
+        <div th:if="${#lists.isEmpty(photos)}" class="empty">No pictures have been uploaded for this date yet.</div>
+        <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
+            <button class="gallery-button" th:each="photo : ${photos}" th:attr="data-gallery-src=@{/photos/{id}(id=${photo.id})}" type="button">
+                <img th:src="@{/photos/{id}(id=${photo.id})}" th:alt="${photo.originalFilename}" loading="lazy">
+            </button>
+        </div>
+    </section>
+</main>
+<div class="lightbox" data-lightbox aria-hidden="true">
+    <button class="close" type="button" data-lightbox-close aria-label="Close">&times;</button>
+    <button class="prev" type="button" data-lightbox-prev aria-label="Previous">‹</button>
+    <img data-lightbox-image alt="">
+    <button class="next" type="button" data-lightbox-next aria-label="Next">›</button>
+</div>
+<script src="/js/gallery.js"></script>
+</body>
+</html>

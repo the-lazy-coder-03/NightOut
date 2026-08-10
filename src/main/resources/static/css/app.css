@@ -123,6 +123,10 @@ p {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.date-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
 .card {
     background: var(--panel);
     border: 1px solid var(--line);
@@ -136,6 +140,15 @@ p {
     gap: 8px;
     text-decoration: none;
     min-height: 132px;
+}
+
+.date-card {
+    min-height: 156px;
+}
+
+.date-number {
+    font-weight: 800;
+    font-size: 1.15rem;
 }
 
 .meta {

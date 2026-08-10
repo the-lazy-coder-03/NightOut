@@ -6,9 +6,11 @@ import example.org.nightout.entity.NightEvent;
 import example.org.nightout.exception.BusinessRuleException;
 import example.org.nightout.service.ClubService;
 import example.org.nightout.service.EventService;
+import example.org.nightout.service.NightlifeDateService;
 import example.org.nightout.service.PhotoService;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,19 +20,20 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.time.LocalDate;
 
 @Controller
 public class PublicController {
 
     private final ClubService clubService;
     private final EventService eventService;
+    private final NightlifeDateService nightlifeDateService;
     private final PhotoService photoService;
 
-    public PublicController(ClubService clubService, EventService eventService, PhotoService photoService) {
+    public PublicController(ClubService clubService, EventService eventService, NightlifeDateService nightlifeDateService, PhotoService photoService) {
         this.clubService = clubService;
         this.eventService = eventService;
+        this.nightlifeDateService = nightlifeDateService;
         this.photoService = photoService;
     }
 
@@ -43,13 +46,23 @@ public class PublicController {
     @GetMapping("/clubs/{slug}")
     public String club(@PathVariable String slug, Model model) {
         Club club = clubService.requireActiveBySlug(slug);
-        List<EventView> events = eventService.eventViewsForClub(club);
-        Map<Boolean, List<EventView>> grouped = events.stream()
-                .collect(Collectors.partitioningBy(EventView::uploadAvailable));
         model.addAttribute("club", club);
-        model.addAttribute("recentEvents", grouped.get(true));
-        model.addAttribute("otherEvents", grouped.get(false));
+        model.addAttribute("nightDates", eventService.nightDateViewsForClub(club, nightlifeDateService.currentAndPreviousNightDates(7)));
         return "club";
+    }
+
+    @GetMapping("/clubs/{slug}/dates/{nightDate}")
+    public String dateGallery(@PathVariable String slug,
+                              @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate nightDate,
+                              Model model) {
+        Club club = clubService.requireActiveBySlug(slug);
+        List<EventView> events = eventService.eventViewsForClubAndDate(club, nightDate);
+        model.addAttribute("club", club);
+        model.addAttribute("nightDate", nightDate);
+        model.addAttribute("events", events);
+        model.addAttribute("uploadEvents", events.stream().filter(EventView::uploadAvailable).toList());
+        model.addAttribute("photos", photoService.galleryPhotosForEvents(events.stream().map(EventView::event).toList()));
+        return "date-gallery";
     }
 
     @GetMapping("/clubs/{slug}/events/{eventId}")

@@ -13,6 +13,10 @@ import java.util.Optional;
 public interface NightEventRepository extends JpaRepository<NightEvent, Long> {
     List<NightEvent> findByClubAndCancelledFalseOrderByEventDateDesc(Club club);
 
+    List<NightEvent> findByClubAndCancelledFalseAndEventDateBetweenOrderByEventDateDescStartTimeAsc(Club club, LocalDate startDate, LocalDate endDate);
+
+    List<NightEvent> findByClubAndCancelledFalseAndEventDateOrderByStartTimeAsc(Club club, LocalDate eventDate);
+
     @EntityGraph(attributePaths = "club")
     Optional<NightEvent> findByIdAndClubSlug(Long id, String slug);
 

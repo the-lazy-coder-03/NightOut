@@ -161,7 +161,7 @@ class PhotoServiceBusinessRulesTest {
         @Bean
         @Primary
         Clock fixedClock() {
-            return Clock.fixed(Instant.parse("2026-08-10T10:00:00Z"), ZoneId.of("UTC"));
+            return Clock.fixed(Instant.parse("2026-08-10T13:00:00Z"), ZoneId.of("UTC"));
         }
     }
 }

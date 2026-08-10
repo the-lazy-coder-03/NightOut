@@ -67,6 +67,17 @@ public class PhotoService {
     }
 
     @Transactional(readOnly = true)
+    public List<Photo> galleryPhotosForEvents(List<NightEvent> events) {
+        List<NightEvent> availableEvents = events.stream()
+                .filter(policyService::galleryAvailable)
+                .toList();
+        if (availableEvents.isEmpty()) {
+            return List.of();
+        }
+        return photoRepository.findByEventInAndStatusOrderByUploadedAtDesc(availableEvents, PhotoStatus.APPROVED);
+    }
+
+    @Transactional(readOnly = true)
     public Photo publicPhoto(Long photoId) {
         Photo photo = photoRepository.findWithEventById(photoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Photo not found."));

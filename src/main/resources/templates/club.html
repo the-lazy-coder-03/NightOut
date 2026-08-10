@@ -22,27 +22,14 @@
     </section>
 
     <section class="section">
-        <h2>Recent Nights</h2>
-        <div th:if="${#lists.isEmpty(recentEvents)}" class="empty">There are no open galleries right now.</div>
-        <div class="grid event-grid" style="margin-top: 14px" th:if="${!#lists.isEmpty(recentEvents)}">
-            <a class="card card-link" th:each="item : ${recentEvents}" th:href="@{/clubs/{slug}/events/{id}(slug=${club.slug},id=${item.event.id})}">
-                <span class="status" th:classappend="${item.status.name().toLowerCase()}" th:text="${item.status}">RECENT</span>
-                <h3 th:text="${item.event.eventName}">Saturday</h3>
-                <span class="meta" th:text="${#temporals.format(item.event.eventDate, 'EEEE d MMMM yyyy')}">Saturday 8 August 2026</span>
-                <span class="meta" th:text="${item.photoCount} + ' photos'">143 photos</span>
-            </a>
-        </div>
-    </section>
-
-    <section class="section">
-        <h2>Upcoming and Closed Nights</h2>
-        <div th:if="${#lists.isEmpty(otherEvents)}" class="empty">No upcoming or closed nights yet.</div>
-        <div class="grid event-grid" style="margin-top: 14px" th:if="${!#lists.isEmpty(otherEvents)}">
-            <a class="card card-link" th:each="item : ${otherEvents}" th:href="@{/clubs/{slug}/events/{id}(slug=${club.slug},id=${item.event.id})}">
-                <span class="status" th:classappend="${item.status.name().toLowerCase()}" th:text="${item.status}">UPCOMING</span>
-                <h3 th:text="${item.event.eventName}">Next Saturday</h3>
-                <span class="meta" th:text="${#temporals.format(item.event.eventDate, 'EEEE d MMMM yyyy')}">Saturday 15 August 2026</span>
-                <span class="meta" th:text="${item.status.name() == 'UPCOMING' ? 'Coming Soon' : 'Closed'}">Coming Soon</span>
+        <h2>Choose a date</h2>
+        <div class="grid date-grid" style="margin-top: 14px">
+            <a class="card card-link date-card" th:each="nightDate : ${nightDates}" th:href="@{/clubs/{slug}/dates/{date}(slug=${club.slug},date=${nightDate.date})}">
+                <span class="status" th:classappend="${nightDate.current ? 'active' : 'recent'}" th:text="${nightDate.current ? 'Current night' : 'Past night'}">Current night</span>
+                <h3 th:text="${#temporals.format(nightDate.date, 'EEEE')}">Friday</h3>
+                <span class="date-number" th:text="${#temporals.format(nightDate.date, 'd MMMM yyyy')}">7 August 2026</span>
+                <span class="meta" th:if="${#lists.isEmpty(nightDate.events)}">No pictures yet</span>
+                <span class="meta" th:if="${!#lists.isEmpty(nightDate.events)}" th:text="${nightDate.photoCount} + ' photos'">143 photos</span>
             </a>
         </div>
     </section>

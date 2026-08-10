@@ -1,6 +1,7 @@
 package example.org.nightout.service;
 
 import example.org.nightout.dto.EventView;
+import example.org.nightout.dto.NightDateView;
 import example.org.nightout.entity.Club;
 import example.org.nightout.entity.NightEvent;
 import example.org.nightout.entity.PhotoStatus;
@@ -14,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class EventService {
@@ -33,6 +36,35 @@ public class EventService {
     @Transactional(readOnly = true)
     public List<EventView> eventViewsForClub(Club club) {
         return eventRepository.findByClubAndCancelledFalseOrderByEventDateDesc(club).stream()
+                .map(this::toView)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<NightDateView> nightDateViewsForClub(Club club, List<LocalDate> dates) {
+        if (dates.isEmpty()) {
+            return List.of();
+        }
+        LocalDate endDate = dates.getFirst();
+        LocalDate startDate = dates.getLast();
+        Map<LocalDate, List<EventView>> eventsByDate = eventRepository
+                .findByClubAndCancelledFalseAndEventDateBetweenOrderByEventDateDescStartTimeAsc(club, startDate, endDate)
+                .stream()
+                .map(this::toView)
+                .collect(Collectors.groupingBy(view -> view.event().getEventDate()));
+
+        return dates.stream()
+                .map(date -> {
+                    List<EventView> eventViews = eventsByDate.getOrDefault(date, List.of());
+                    long photoCount = eventViews.stream().mapToLong(EventView::photoCount).sum();
+                    return new NightDateView(date, date.equals(endDate), eventViews, photoCount);
+                })
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventView> eventViewsForClubAndDate(Club club, LocalDate date) {
+        return eventRepository.findByClubAndCancelledFalseAndEventDateOrderByStartTimeAsc(club, date).stream()
                 .map(this::toView)
                 .toList();
     }
