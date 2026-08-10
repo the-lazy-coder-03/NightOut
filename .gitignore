@@ -5,7 +5,7 @@ HELP.md
 .gradle
 build/
 target/
-storage/
+/storage/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
