@@ -208,7 +208,7 @@ jobs:
             ensure_local_postgres() {
               env_value() {
                 key="$1"
-                sed -n "s/^${key}=//p" /etc/nightout/nightout.env | tail -n 1
+                sudo sed -n "s/^${key}=//p" /etc/nightout/nightout.env | tail -n 1
               }
 
               db_url="$(env_value SPRING_DATASOURCE_URL)"
