@@ -15,11 +15,14 @@
     <section class="home-hero">
         <span class="home-kicker">NightOut South Africa</span>
         <h1>Find the nightlife photos from your area, all in one place</h1>
-        <nav class="area-list" aria-label="Areas">
-            <a class="area-link" th:each="area : ${areas}" th:href="@{/areas/{slug}(slug=${area.slug})}">
-                <span th:text="${area.displayName}">Cape Town</span>
-                <span aria-hidden="true">&rarr;</span>
-            </a>
+        <nav aria-label="Areas">
+            <ul class="area-list">
+                <li th:each="area : ${areas}">
+                    <a class="area-link" th:href="@{/areas/{slug}(slug=${area.slug})}">
+                        <span th:text="${area.displayName}">Cape Town</span>
+                    </a>
+                </li>
+            </ul>
         </nav>
     </section>
 </main>

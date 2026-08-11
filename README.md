@@ -105,8 +105,8 @@ mvn spring-boot:run
 
 With demo seeding enabled, the app creates fictional clubs and events, plus:
 
-- Admin: `admin@nightout.local` / `admin12345`
-- Club owner: `owner@nightout.local` / `owner12345`
+- Admin: `NIGHTOUT_ADMIN_LOGIN_EMAIL` / `NIGHTOUT_ADMIN_LOGIN_PASSWORD`
+- Club owner: `NIGHTOUT_CLUB_LOGIN_EMAIL` / `NIGHTOUT_CLUB_LOGIN_PASSWORD`
 
 Set `NIGHTOUT_SEED_DEMO=false` outside local demo environments.
 

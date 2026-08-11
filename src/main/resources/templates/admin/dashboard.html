@@ -51,7 +51,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="club : ${clubs}">
-                    <td><a th:href="@{/clubs/{slug}(slug=${club.slug})}" th:text="${club.name}">Halo</a></td>
+                    <td><a th:href="@{/clubs/{slug}(slug=${club.slug})}" th:text="${club.name}">HALO</a></td>
                     <td th:text="${club.city}">Cape Town</td>
                     <td th:text="${club.area}">Cape Town</td>
                     <td th:text="${club.active ? 'Active' : 'Disabled'}">Active</td>
@@ -73,7 +73,7 @@
         <form class="card form-grid three" method="post" th:action="@{/admin/events}">
             <label>Club
                 <select name="clubId" required>
-                    <option th:each="club : ${clubs}" th:value="${club.id}" th:text="${club.name}">Halo</option>
+                    <option th:each="club : ${clubs}" th:value="${club.id}" th:text="${club.name}">HALO</option>
                 </select>
             </label>
             <label>Event name <input name="eventName" required></label>
@@ -93,7 +93,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="event : ${events}">
-                    <td th:text="${event.club.name}">Halo</td>
+                    <td th:text="${event.club.name}">HALO</td>
                     <td th:text="${event.eventName}">Saturday</td>
                     <td th:text="${#temporals.format(event.eventDate, 'yyyy-MM-dd')}">2026-08-08</td>
                     <td th:text="${event.startTime + ' - ' + event.endTime}">21:00 - 03:00</td>
@@ -118,7 +118,7 @@
             <label>Password <input name="password" type="password" minlength="8" required></label>
             <label>Assign club
                 <select name="clubIds" multiple>
-                    <option th:each="club : ${clubs}" th:value="${club.id}" th:text="${club.name}">Halo</option>
+                    <option th:each="club : ${clubs}" th:value="${club.id}" th:text="${club.name}">HALO</option>
                 </select>
             </label>
             <button class="button" type="submit">Create Owner</button>
@@ -136,7 +136,7 @@
                 <tbody>
                 <tr th:each="photo : ${photos}">
                     <td><img th:src="@{/photos/{id}(id=${photo.id})}" alt="" loading="lazy" style="width:64px;height:64px;object-fit:cover;border-radius:8px"></td>
-                    <td th:text="${photo.event.club.name}">Halo</td>
+                    <td th:text="${photo.event.club.name}">HALO</td>
                     <td th:text="${photo.event.eventName}">Saturday</td>
                     <td th:text="${photo.originalFilename}">photo.jpg</td>
                     <td th:text="${#temporals.format(photo.uploadedAt, 'yyyy-MM-dd HH:mm')}">2026-08-08</td>

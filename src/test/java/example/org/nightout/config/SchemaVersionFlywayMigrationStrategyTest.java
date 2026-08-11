@@ -31,7 +31,7 @@ class SchemaVersionFlywayMigrationStrategyTest {
     void sameVersionRunsMigrationsWithoutDroppingData() throws SQLException {
         Flyway flyway = newFlyway();
         strategy("1", false).migrate(flyway);
-        insertClub(flyway, "Halo", "halo");
+        insertClub(flyway, "HALO", "halo");
 
         strategy("1", false).migrate(flyway);
 
@@ -43,7 +43,7 @@ class SchemaVersionFlywayMigrationStrategyTest {
     void changedVersionWithResetAllowedDropsAndRebuildsSchema() throws SQLException {
         Flyway flyway = newFlyway();
         strategy("1", false).migrate(flyway);
-        insertClub(flyway, "Halo", "halo");
+        insertClub(flyway, "HALO", "halo");
 
         strategy("2", true).migrate(flyway);
 
@@ -57,7 +57,7 @@ class SchemaVersionFlywayMigrationStrategyTest {
     void changedVersionWithoutResetAllowedFailsStartupAndPreservesData() throws SQLException {
         Flyway flyway = newFlyway();
         strategy("1", false).migrate(flyway);
-        insertClub(flyway, "Halo", "halo");
+        insertClub(flyway, "HALO", "halo");
 
         assertThatThrownBy(() -> strategy("2", false).migrate(flyway))
                 .isInstanceOf(IllegalStateException.class)

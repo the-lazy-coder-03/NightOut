@@ -24,7 +24,7 @@
     <div class="grid club-grid" th:if="${!#lists.isEmpty(clubs)}">
         <a class="card card-link" th:each="club : ${clubs}" th:href="@{/owner/clubs/{id}(id=${club.id})}">
             <span class="eyebrow" th:text="${club.city}">Cape Town</span>
-            <h3 th:text="${club.name}">Halo</h3>
+            <h3 th:text="${club.name}">HALO</h3>
             <span class="meta">Manage nights, photos, and QR code</span>
         </a>
     </div>

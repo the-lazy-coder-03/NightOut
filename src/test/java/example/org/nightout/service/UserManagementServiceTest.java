@@ -36,7 +36,7 @@ class UserManagementServiceTest {
         userRepository.deleteAll();
         clubRepository.deleteAll();
 
-        ownedClub = clubRepository.save(club("Halo", "halo"));
+        ownedClub = clubRepository.save(club("HALO", "halo"));
         otherClub = clubRepository.save(club("Modular", "modular"));
 
         owner = new AppUser();

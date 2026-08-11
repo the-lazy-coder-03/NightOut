@@ -20,6 +20,8 @@ import java.util.List;
 @Component
 public class DemoDataLoader implements CommandLineRunner {
 
+    private static final String HALO_LOGO_URL = "https://festival101.co.za/wp-content/uploads/2023/11/Halo-Feature-image-blog-min.jpg";
+
     private final AppProperties properties;
     private final ClubRepository clubRepository;
     private final AppUserRepository userRepository;
@@ -45,7 +47,7 @@ public class DemoDataLoader implements CommandLineRunner {
             return;
         }
 
-        Club halo = clubService.create("Halo", "halo", "Cape Town", "Cape Town", "12 Loop Street", null, null, true);
+        Club halo = clubService.create("HALO", "halo", "Cape Town", "Cape Town", "12 Loop Street", HALO_LOGO_URL, null, true);
         Club modular = clubService.create("Modular", "modular", "Cape Town", "Claremont", "38 Harrington Street", null, null, true);
         clubService.create("Club Paradise", "club-paradise", "Cape Town", "Stellenbosch", "99 Bree Street", null, null, true);
 
@@ -58,16 +60,16 @@ public class DemoDataLoader implements CommandLineRunner {
         }
 
         AppUser admin = new AppUser();
-        admin.setEmail("admin@nightout.local");
+        admin.setEmail(properties.getAdminLoginEmail());
         admin.setFullName("Nightout Admin");
-        admin.setPasswordHash(passwordEncoder.encode("admin12345"));
+        admin.setPasswordHash(passwordEncoder.encode(properties.getAdminLoginPassword()));
         admin.setRole(UserRole.ADMIN);
         userRepository.save(admin);
 
         AppUser owner = new AppUser();
-        owner.setEmail("owner@nightout.local");
-        owner.setFullName("Halo Owner");
-        owner.setPasswordHash(passwordEncoder.encode("owner12345"));
+        owner.setEmail(properties.getClubLoginEmail());
+        owner.setFullName("HALO Owner");
+        owner.setPasswordHash(passwordEncoder.encode(properties.getClubLoginPassword()));
         owner.setRole(UserRole.CLUB_OWNER);
         owner.getClubs().add(halo);
         userRepository.save(owner);

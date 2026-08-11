@@ -16,9 +16,8 @@
 </header>
 <main class="shell">
     <section class="hero">
-        <span class="eyebrow" th:text="${club.name}">Halo</span>
-        <h1 th:text="${#temporals.format(nightDate, 'EEEE d MMMM yyyy')}">Friday 7 August 2026</h1>
-        <p th:text="${club.address}">12 Loop Street</p>
+        <h1 th:text="${club.name}">HALO</h1>
+        <p class="date-heading" th:text="${#temporals.format(nightDate, 'EEEE d MMMM yyyy')}">Friday 7 August 2026</p>
     </section>
 
     <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Uploaded.</div>

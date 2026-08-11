@@ -17,7 +17,7 @@
 <main class="shell">
     <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Uploaded.</div>
     <section class="hero">
-        <span class="eyebrow" th:text="${club.name}">Halo</span>
+        <span class="eyebrow" th:text="${club.name}">HALO</span>
         <h1 th:text="${eventView.event.eventName}">Saturday</h1>
         <p th:text="${#temporals.format(eventView.event.eventDate, 'EEEE d MMMM yyyy') + ' | Photos available until ' + #temporals.format(eventView.expiresOn, 'd MMMM yyyy')}">Date</p>
     </section>

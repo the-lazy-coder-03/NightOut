@@ -43,6 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class PublicDateFlowTest {
 
+    private static final String HALO_LOGO_URL = "https://festival101.co.za/wp-content/uploads/2023/11/Halo-Feature-image-blog-min.jpg";
+
     @Autowired
     MockMvc mockMvc;
 
@@ -66,7 +68,7 @@ class PublicDateFlowTest {
         eventRepository.deleteAll();
         clubRepository.deleteAll();
 
-        halo = saveClub("Halo", "halo", "Cape Town");
+        halo = saveClub("HALO", "halo", "Cape Town", HALO_LOGO_URL);
         modular = saveClub("Modular", "modular", "Claremont");
         haloFriday = saveEvent(halo, "Friday Night", LocalDate.of(2026, 8, 7));
         modularFriday = saveEvent(modular, "Other Friday", LocalDate.of(2026, 8, 7));
@@ -92,7 +94,9 @@ class PublicDateFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Cape Town")))
                 .andExpect(content().string(containsString("/clubs/halo")))
-                .andExpect(content().string(containsString("Halo")))
+                .andExpect(content().string(containsString("class=\"club-card-image\"")))
+                .andExpect(content().string(containsString(HALO_LOGO_URL)))
+                .andExpect(content().string(containsString("HALO")))
                 .andExpect(content().string(not(containsString("Modular"))));
     }
 
@@ -107,6 +111,8 @@ class PublicDateFlowTest {
     void clubPageShowsCurrentNightAndSevenPreviousDatesBeforeNoon() throws Exception {
         String html = mockMvc.perform(get("/clubs/halo"))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"club-hero-image\"")))
+                .andExpect(content().string(containsString(HALO_LOGO_URL)))
                 .andExpect(content().string(containsString("/clubs/halo/dates/2026-08-07")))
                 .andExpect(content().string(containsString("/clubs/halo/dates/2026-07-31")))
                 .andExpect(content().string(not(containsString("/clubs/halo/dates/2026-08-08"))))
@@ -243,11 +249,16 @@ class PublicDateFlowTest {
     }
 
     private Club saveClub(String name, String slug, String area) {
+        return saveClub(name, slug, area, null);
+    }
+
+    private Club saveClub(String name, String slug, String area, String logoUrl) {
         Club club = new Club();
         club.setName(name);
         club.setSlug(slug);
         club.setCity("Cape Town");
         club.setArea(area);
+        club.setLogoUrl(logoUrl);
         club.setActive(true);
         return clubRepository.save(club);
     }

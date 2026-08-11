@@ -16,9 +16,8 @@
 </header>
 <main class="shell">
     <section class="hero">
-        <span class="eyebrow" th:text="${club.city}">Cape Town</span>
-        <h1 th:text="${club.name}">Halo</h1>
-        <p th:text="${club.address}">12 Loop Street</p>
+        <img class="club-hero-image" th:if="${club.logoUrl}" th:src="${club.logoUrl}" th:alt="${club.name}" loading="lazy">
+        <h1 th:text="${club.name}">HALO</h1>
     </section>
 
     <section class="section">

@@ -16,7 +16,6 @@
 </header>
 <main class="shell">
     <section class="hero">
-        <span class="eyebrow">Area</span>
         <h1 th:text="${area.displayName}">Cape Town</h1>
         <p>Choose a club to view dates, galleries, and uploads for that night.</p>
     </section>
@@ -26,9 +25,8 @@
         <div class="empty" th:if="${#lists.isEmpty(clubs)}">No clubs are live in this area yet.</div>
         <div class="grid club-grid" th:if="${!#lists.isEmpty(clubs)}">
             <a class="card card-link" th:each="club : ${clubs}" th:href="@{/clubs/{slug}(slug=${club.slug})}">
-                <span class="eyebrow" th:text="${club.area}">Cape Town</span>
-                <h3 th:text="${club.name}">Halo</h3>
-                <span class="meta" th:text="${club.address}">12 Loop Street</span>
+                <img class="club-card-image" th:if="${club.logoUrl}" th:src="${club.logoUrl}" th:alt="${club.name}" loading="lazy">
+                <h3 th:text="${club.name}">HALO</h3>
             </a>
         </div>
     </section>

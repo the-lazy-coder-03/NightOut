@@ -60,7 +60,7 @@ class PhotoServiceBusinessRulesTest {
         eventRepository.deleteAll();
         clubRepository.deleteAll();
 
-        halo = saveClub("Halo", "halo");
+        halo = saveClub("HALO", "halo");
         modular = saveClub("Modular", "modular");
         todayEvent = saveEvent(halo, "Tonight", TODAY);
         recentEvent = saveEvent(halo, "Recent", TODAY.minusDays(2));
