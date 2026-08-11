@@ -88,6 +88,7 @@ class PublicDateFlowTest {
                 .andExpect(content().string(containsString("/areas/cape-town")))
                 .andExpect(content().string(containsString("/areas/claremont")))
                 .andExpect(content().string(containsString("/areas/stellenbosch")))
+                .andExpect(content().string(containsString("href=\"/private-events\"")))
                 .andExpect(content().string(not(containsString("/clubs/halo"))))
                 .andExpect(content().string(not(containsString("data-preload-src"))))
                 .andExpect(content().string(not(containsString("Friday Night"))));

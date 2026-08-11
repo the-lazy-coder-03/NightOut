@@ -10,6 +10,7 @@
 <header class="topbar">
     <a class="brand" href="/private-events">NightOut Private Events</a>
     <nav class="nav">
+        <a href="/private-events">Private events</a>
         <form method="post" th:action="@{/logout}">
             <button type="submit">Log out</button>
         </form>
@@ -23,6 +24,7 @@
         <span class="eyebrow">Invite only</span>
         <h1 th:if="${eventView == null}">Join a private event</h1>
         <h1 th:if="${eventView != null}" th:text="${eventView.event.eventName}">Private Event</h1>
+        <p>After you join once, this event will stay available from your account until it expires.</p>
     </section>
 
     <form class="card form-grid two" method="post" th:action="@{/private-events/join}">

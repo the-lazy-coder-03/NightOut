@@ -28,7 +28,7 @@
     <section class="section">
         <div class="card form-grid two">
             <p><strong>Code</strong><br><span th:text="${eventView.event.joinCode}">12345678</span></p>
-            <p><strong>Time</strong><br><span th:text="${eventView.event.startTime + ' - ' + eventView.event.endTime}">21:00 - 03:00</span></p>
+            <p><strong>Created</strong><br><span th:text="${#temporals.format(eventView.event.eventDate, 'yyyy-MM-dd')}">2026-08-08</span></p>
             <p><strong>Expires</strong><br><span th:text="${#temporals.format(eventView.expiresOn, 'yyyy-MM-dd')}">2026-08-15</span></p>
             <p><strong>Membership</strong><br><span>Joined</span></p>
         </div>

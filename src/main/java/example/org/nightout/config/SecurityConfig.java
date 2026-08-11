@@ -48,7 +48,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(login -> login
                         .loginPage("/login")
-                        .defaultSuccessUrl("/dashboard", true)
+                        .defaultSuccessUrl("/dashboard", false)
                         .userInfoEndpoint(userInfo -> userInfo.oidcUserService(logtoOidcUserService))
                         .permitAll()
                 )

@@ -139,6 +139,10 @@ public class PrivateEvent {
         return createdAt;
     }
 
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public List<PrivateEventMembership> getMemberships() {
         return memberships;
     }

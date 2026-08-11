@@ -8,6 +8,7 @@ public class AppProperties {
     private String baseUrl = "http://localhost:8090";
     private String timeZone = "Africa/Johannesburg";
     private int retentionDays = 7;
+    private int privateEventRetentionDays = 32;
     private long maxUploadBytes = 25 * 1024 * 1024;
     private long maxRequestBytes = 300 * 1024 * 1024;
     private int maxUploadCount = 12;
@@ -43,6 +44,14 @@ public class AppProperties {
 
     public void setRetentionDays(int retentionDays) {
         this.retentionDays = retentionDays;
+    }
+
+    public int getPrivateEventRetentionDays() {
+        return privateEventRetentionDays;
+    }
+
+    public void setPrivateEventRetentionDays(int privateEventRetentionDays) {
+        this.privateEventRetentionDays = privateEventRetentionDays;
     }
 
     public long getMaxUploadBytes() {

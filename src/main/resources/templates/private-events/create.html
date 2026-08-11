@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create Private Event | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/private-events">NightOut Private Events</a>
+    <nav class="nav">
+        <a href="/private-events">Private events</a>
+        <form method="post" th:action="@{/logout}">
+            <button type="submit">Log out</button>
+        </form>
+    </nav>
+</header>
+<main class="shell">
+    <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Could not create event.</div>
+
+    <section class="hero">
+        <span class="eyebrow">Create</span>
+        <h1>Create private event</h1>
+        <p>Share the generated code and this password with the people you want inside.</p>
+    </section>
+
+    <form class="card form-grid" method="post" th:action="@{/private-events}">
+        <label>Event name <input name="eventName" autocomplete="off" required></label>
+        <label>Location <input name="location" autocomplete="street-address"></label>
+        <label>Password <input name="password" type="password" minlength="8" autocomplete="new-password" required></label>
+        <button class="button" type="submit">Create Event</button>
+    </form>
+</main>
+</body>
+</html>

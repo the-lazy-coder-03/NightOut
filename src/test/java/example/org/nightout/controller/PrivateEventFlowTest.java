@@ -13,8 +13,11 @@ import example.org.nightout.service.PrivateEventService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,8 +25,11 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,6 +65,9 @@ class PrivateEventFlowTest {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Autowired
+    Clock clock;
+
     AppUser creator;
     AppUser guest;
 
@@ -80,14 +89,39 @@ class PrivateEventFlowTest {
     }
 
     @Test
-    void creatorCreatesPrivateEventWithCodeAndMembership() throws Exception {
+    void privateEventsDashboardShowsCreateThenJoinActions() throws Exception {
+        String html = mockMvc.perform(get("/private-events")
+                        .with(auth(creator, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Your private events")))
+                .andExpect(content().string(containsString("href=\"/private-events/create\"")))
+                .andExpect(content().string(containsString("href=\"/private-events/join\"")))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(html).containsSubsequence("Create private event", "Join private event");
+    }
+
+    @Test
+    void createPageOnlyAsksForNameLocationAndPassword() throws Exception {
+        mockMvc.perform(get("/private-events/create")
+                        .with(auth(creator, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"eventName\"")))
+                .andExpect(content().string(containsString("name=\"location\"")))
+                .andExpect(content().string(containsString("name=\"password\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("name=\"eventDate\""))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("name=\"startTime\""))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("name=\"endTime\""))));
+    }
+
+    @Test
+    void creatorCreatesPrivateEventWithCodeMembershipAndDefaultTiming() throws Exception {
         mockMvc.perform(post("/private-events")
                         .with(auth(creator, "ROLE_USER"))
                         .with(csrf())
                         .param("eventName", "Birthday Table")
-                        .param("eventDate", LocalDate.now().plusDays(2).toString())
-                        .param("startTime", "21:00")
-                        .param("endTime", "03:00")
                         .param("location", "Cape Town")
                         .param("password", "share-this-password"))
                 .andExpect(status().is3xxRedirection())
@@ -96,7 +130,17 @@ class PrivateEventFlowTest {
 
         PrivateEvent event = privateEventRepository.findAll().getFirst();
         assertThat(event.getJoinCode()).matches("\\d{8}");
+        assertThat(event.getEventDate()).isEqualTo(LocalDate.of(2026, 8, 12));
+        assertThat(event.getStartTime()).isEqualTo(LocalTime.MIDNIGHT);
+        assertThat(event.getEndTime()).isEqualTo(LocalTime.of(23, 59));
+        assertThat(privateEventService.expiresOn(event)).isEqualTo(LocalDate.of(2026, 9, 13));
         assertThat(membershipRepository.existsByPrivateEventAndUser(event, creator)).isTrue();
+
+        mockMvc.perform(get("/private-events")
+                        .with(auth(creator, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Birthday Table")))
+                .andExpect(content().string(containsString("Code " + event.getJoinCode())));
     }
 
     @Test
@@ -104,9 +148,6 @@ class PrivateEventFlowTest {
         PrivateEvent event = privateEventService.create(
                 principal(creator, "ROLE_USER"),
                 "Friends Only",
-                LocalDate.now().plusDays(1),
-                LocalTime.of(21, 0),
-                LocalTime.of(3, 0),
                 "Stellenbosch",
                 "correct-password"
         );
@@ -142,15 +183,41 @@ class PrivateEventFlowTest {
     }
 
     @Test
+    void creatorCanReenterCreatedEventEvenIfMembershipIsMissing() throws Exception {
+        PrivateEvent event = new PrivateEvent();
+        event.setCreator(creator);
+        event.setEventName("Creator Only");
+        event.setEventDate(LocalDate.of(2026, 8, 12));
+        event.setStartTime(LocalTime.MIDNIGHT);
+        event.setEndTime(LocalTime.of(23, 59));
+        event.setJoinCode("12345678");
+        event.setPasswordHash(passwordEncoder.encode("correct-password"));
+        event.setCreatedAt(Instant.now(clock));
+        event = privateEventRepository.save(event);
+
+        mockMvc.perform(get("/private-events")
+                        .with(auth(creator, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Creator Only")));
+
+        mockMvc.perform(get("/private-events/{code}", event.getJoinCode())
+                        .with(auth(creator, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Creator Only")))
+                .andExpect(content().string(containsString("Joined")));
+    }
+
+    @Test
     void expiredPrivateEventCannotBeEnteredEvenByMember() throws Exception {
         PrivateEvent event = new PrivateEvent();
         event.setCreator(creator);
         event.setEventName("Expired");
-        event.setEventDate(LocalDate.now().minusDays(8));
-        event.setStartTime(LocalTime.of(21, 0));
-        event.setEndTime(LocalTime.of(3, 0));
+        event.setEventDate(LocalDate.of(2026, 7, 10));
+        event.setStartTime(LocalTime.MIDNIGHT);
+        event.setEndTime(LocalTime.of(23, 59));
         event.setJoinCode("12345678");
         event.setPasswordHash(passwordEncoder.encode("correct-password"));
+        event.setCreatedAt(Instant.parse("2026-07-10T10:00:00Z"));
         event = privateEventRepository.save(event);
 
         PrivateEventMembership membership = new PrivateEventMembership();
@@ -188,5 +255,14 @@ class PrivateEventFlowTest {
     private static UsernamePasswordAuthenticationToken authentication(AppUser user, String... authorities) {
         AuthenticatedUser principal = principal(user, authorities);
         return new UsernamePasswordAuthenticationToken(principal, "n/a", principal.getAuthorities());
+    }
+
+    @TestConfiguration
+    static class FixedClockConfig {
+        @Bean
+        @Primary
+        Clock fixedClock() {
+            return Clock.fixed(Instant.parse("2026-08-12T10:00:00Z"), ZoneId.of("UTC"));
+        }
     }
 }

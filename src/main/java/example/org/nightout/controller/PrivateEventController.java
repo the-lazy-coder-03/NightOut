@@ -6,7 +6,6 @@ import example.org.nightout.exception.BusinessRuleException;
 import example.org.nightout.security.AuthenticatedUser;
 import example.org.nightout.service.PrivateEventService;
 
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,9 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Controller
 @RequestMapping("/private-events")
@@ -36,22 +32,24 @@ public class PrivateEventController {
         return "private-events/dashboard";
     }
 
+    @GetMapping("/create")
+    public String createForm() {
+        return "private-events/create";
+    }
+
     @PostMapping
     public String create(@AuthenticationPrincipal AuthenticatedUser user,
                          @RequestParam String eventName,
-                         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate eventDate,
-                         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime startTime,
-                         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime endTime,
                          @RequestParam(required = false) String location,
                          @RequestParam String password,
                          RedirectAttributes redirectAttributes) {
         try {
-            PrivateEvent event = privateEventService.create(user, eventName, eventDate, startTime, endTime, location, password);
+            PrivateEvent event = privateEventService.create(user, eventName, location, password);
             redirectAttributes.addFlashAttribute("successMessage", "Private event created. Share code " + event.getJoinCode() + " and the password with your guests.");
             return "redirect:/private-events/" + event.getJoinCode();
         } catch (BusinessRuleException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/private-events";
+            return "redirect:/private-events/create";
         }
     }
 

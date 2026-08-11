@@ -17,15 +17,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class PrivateEventService {
 
     private static final int JOIN_CODE_BOUND = 100_000_000;
     private static final int MAX_JOIN_CODE_ATTEMPTS = 25;
+    private static final LocalTime DEFAULT_START_TIME = LocalTime.MIDNIGHT;
+    private static final LocalTime DEFAULT_END_TIME = LocalTime.of(23, 59);
 
     private final PrivateEventRepository privateEventRepository;
     private final PrivateEventMembershipRepository membershipRepository;
@@ -48,8 +53,8 @@ public class PrivateEventService {
     @Transactional(readOnly = true)
     public List<PrivateEventView> eventsFor(AuthenticatedUser principal) {
         AppUser user = userManagementService.requireUser(principal.getId());
-        return membershipRepository.findByUserOrderByJoinedAtDesc(user).stream()
-                .map(membership -> viewFor(membership.getPrivateEvent(), true))
+        return privateEventRepository.findVisibleToUser(user).stream()
+                .map(event -> viewFor(event, true))
                 .filter(view -> !view.expired() && !view.event().isCancelled())
                 .toList();
     }
@@ -67,7 +72,7 @@ public class PrivateEventService {
             throw new BusinessRuleException("This private event has expired.");
         }
         AppUser user = userManagementService.requireUser(principal.getId());
-        return viewFor(event, membershipRepository.existsByPrivateEventAndUser(event, user));
+        return viewFor(event, isParticipant(event, user));
     }
 
     @Transactional(readOnly = true)
@@ -77,20 +82,16 @@ public class PrivateEventService {
             throw new BusinessRuleException("This private event has expired.");
         }
         AppUser user = userManagementService.requireUser(principal.getId());
-        if (!membershipRepository.existsByPrivateEventAndUser(event, user)) {
+        if (!isParticipant(event, user)) {
             throw new BusinessRuleException("Join this private event first.");
         }
         return viewFor(event, true);
     }
 
     @Transactional
-    public PrivateEvent create(AuthenticatedUser principal, String eventName, LocalDate eventDate,
-                               LocalTime startTime, LocalTime endTime, String location, String password) {
+    public PrivateEvent create(AuthenticatedUser principal, String eventName, String location, String password) {
         AppUser creator = userManagementService.requireUser(principal.getId());
         LocalDate today = LocalDate.now(clock);
-        if (eventDate.isBefore(today)) {
-            throw new BusinessRuleException("Private event date cannot be in the past.");
-        }
         if (password == null || password.length() < 8) {
             throw new BusinessRuleException("Private event password must be at least 8 characters.");
         }
@@ -98,12 +99,13 @@ public class PrivateEventService {
         PrivateEvent event = new PrivateEvent();
         event.setCreator(creator);
         event.setEventName(requireText(eventName, "Event name is required."));
-        event.setEventDate(eventDate);
-        event.setStartTime(startTime);
-        event.setEndTime(endTime);
+        event.setEventDate(today);
+        event.setStartTime(DEFAULT_START_TIME);
+        event.setEndTime(DEFAULT_END_TIME);
         event.setLocation(blankToNull(location));
         event.setJoinCode(generateJoinCode());
         event.setPasswordHash(passwordEncoder.encode(password));
+        event.setCreatedAt(Instant.now(clock));
 
         PrivateEvent saved = privateEventRepository.save(event);
         addMember(saved, creator);
@@ -127,7 +129,11 @@ public class PrivateEventService {
     }
 
     public LocalDate expiresOn(PrivateEvent event) {
-        return event.getEventDate().plusDays(properties.getRetentionDays());
+        Instant createdAt = event.getCreatedAt();
+        LocalDate createdDate = createdAt == null
+                ? event.getEventDate()
+                : LocalDate.ofInstant(createdAt, ZoneId.of(properties.getTimeZone()));
+        return createdDate.plusDays(properties.getPrivateEventRetentionDays());
     }
 
     private PrivateEventView viewFor(PrivateEvent event, boolean member) {
@@ -136,6 +142,13 @@ public class PrivateEventService {
 
     private boolean expired(PrivateEvent event) {
         return LocalDate.now(clock).isAfter(expiresOn(event));
+    }
+
+    private boolean isParticipant(PrivateEvent event, AppUser user) {
+        if (Objects.equals(event.getCreator().getId(), user.getId())) {
+            return true;
+        }
+        return membershipRepository.existsByPrivateEventAndUser(event, user);
     }
 
     private void addMember(PrivateEvent event, AppUser user) {

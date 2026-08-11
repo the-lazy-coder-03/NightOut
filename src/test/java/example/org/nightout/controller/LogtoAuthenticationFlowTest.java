@@ -137,6 +137,34 @@ class LogtoAuthenticationFlowTest {
         assertThat(linked.getAuthorities()).extracting("authority").contains("ROLE_ADMIN", "ROLE_USER");
     }
 
+    @Test
+    void existingAdminIsNotDowngradedWhenLogtoRoleClaimIsMissing() {
+        AppUser admin = new AppUser();
+        admin.setEmail("admin@example.com");
+        admin.setFullName("Existing Admin");
+        admin.setRole(UserRole.ADMIN);
+        admin = userRepository.save(admin);
+
+        AuthenticatedUser linked = logtoOidcUserService.link(oidc("logto-existing-admin", "admin@example.com", List.of(), "Admin"));
+
+        assertThat(linked.getId()).isEqualTo(admin.getId());
+        assertThat(linked.getRole()).isEqualTo(UserRole.ADMIN);
+        assertThat(linked.getAuthorities()).extracting("authority").contains("ROLE_ADMIN", "ROLE_USER");
+        assertThat(userRepository.findById(admin.getId()).orElseThrow().getRole()).isEqualTo(UserRole.ADMIN);
+    }
+
+    @Test
+    void singularRoleClaimMapsToAdminAuthority() {
+        OidcUser oidcUser = oidc("logto-singular-admin", "admin@example.com", List.of(), "Admin");
+        when(oidcUser.getClaims()).thenReturn(Map.of("sub", "logto-singular-admin", "email", "admin@example.com", "role", "super_admin"));
+        when(oidcUser.getAttributes()).thenReturn(Map.of("sub", "logto-singular-admin", "email", "admin@example.com", "role", "super_admin"));
+
+        AuthenticatedUser linked = logtoOidcUserService.link(oidcUser);
+
+        assertThat(linked.getRole()).isEqualTo(UserRole.ADMIN);
+        assertThat(linked.getAuthorities()).extracting("authority").contains("ROLE_ADMIN", "ROLE_USER");
+    }
+
     private static OidcUser oidc(String subject, String email, List<String> roles, String name) {
         OidcUser oidcUser = mock(OidcUser.class);
         when(oidcUser.getSubject()).thenReturn(subject);

@@ -26,6 +26,7 @@ import java.util.Set;
 public class LogtoOidcUserService implements OAuth2UserService<OidcUserRequest, OidcUser> {
 
     private static final String ROLE_CLAIM = "roles";
+    private static final String LEGACY_ROLE_CLAIM = "role";
     private static final String LOGTO_SUPER_ADMIN = "super_admin";
     private static final String LOGTO_SUPERADMIN = "superadmin";
     private static final String LOGTO_CLUB_OWNER = "club_owner";
@@ -49,12 +50,14 @@ public class LogtoOidcUserService implements OAuth2UserService<OidcUserRequest, 
     public AuthenticatedUser link(OidcUser oidcUser) {
         String subject = requireText(oidcUser.getSubject(), "Logto subject is missing.");
         String email = requireText(oidcUser.getEmail(), "Logto email is missing. Enable/request the email scope.");
-        Collection<? extends GrantedAuthority> authorities = authoritiesFor(oidcUser);
-        UserRole localRole = localRoleFor(authorities);
+        Collection<? extends GrantedAuthority> logtoAuthorities = authoritiesFor(oidcUser);
 
         AppUser user = userRepository.findByLogtoSubject(subject)
                 .or(() -> userRepository.findByEmailIgnoreCase(email))
                 .orElseGet(AppUser::new);
+
+        UserRole localRole = effectiveRole(user, logtoAuthorities);
+        Collection<? extends GrantedAuthority> authorities = authoritiesWithRole(logtoAuthorities, localRole);
 
         user.setLogtoSubject(subject);
         user.setEmail(email.trim().toLowerCase(Locale.ROOT));
@@ -86,7 +89,7 @@ public class LogtoOidcUserService implements OAuth2UserService<OidcUserRequest, 
     }
 
     private static List<String> rolesClaim(OidcUser oidcUser) {
-        Object claim = oidcUser.getClaims().get(ROLE_CLAIM);
+        Object claim = oidcUser.getClaims().getOrDefault(ROLE_CLAIM, oidcUser.getClaims().get(LEGACY_ROLE_CLAIM));
         if (claim instanceof Collection<?> values) {
             List<String> roles = new ArrayList<>();
             for (Object value : values) {
@@ -96,7 +99,36 @@ public class LogtoOidcUserService implements OAuth2UserService<OidcUserRequest, 
             }
             return roles;
         }
+        if (claim instanceof String role && !role.isBlank()) {
+            return List.of(role);
+        }
         return List.of();
+    }
+
+    private static UserRole effectiveRole(AppUser user, Collection<? extends GrantedAuthority> authorities) {
+        UserRole logtoRole = localRoleFor(authorities);
+        if (logtoRole != UserRole.USER) {
+            return logtoRole;
+        }
+        if (user.getId() != null && (user.getRole() == UserRole.ADMIN || user.getRole() == UserRole.CLUB_OWNER)) {
+            return user.getRole();
+        }
+        return UserRole.USER;
+    }
+
+    private static Collection<? extends GrantedAuthority> authoritiesWithRole(Collection<? extends GrantedAuthority> authorities, UserRole role) {
+        Set<String> names = new LinkedHashSet<>();
+        for (GrantedAuthority authority : authorities) {
+            names.add(authority.getAuthority());
+        }
+        names.add("ROLE_USER");
+        if (role == UserRole.ADMIN) {
+            names.add("ROLE_ADMIN");
+        }
+        if (role == UserRole.CLUB_OWNER) {
+            names.add("ROLE_CLUB_OWNER");
+        }
+        return names.stream().map(SimpleGrantedAuthority::new).toList();
     }
 
     private static String normalizeRole(String role) {
