@@ -408,6 +408,14 @@ button[disabled] {
     margin-top: 34px;
 }
 
+.section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
 .section .club-grid {
     margin-top: 14px;
 }
@@ -726,6 +734,11 @@ th {
 
     .actions {
         width: 100%;
+    }
+
+    .section-head {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .date-grid {

@@ -169,6 +169,23 @@ public class PhotoService {
         photoRepository.delete(photo);
     }
 
+    @Transactional
+    public PhotoDeleteResult deleteAllPhotos() {
+        int deletedCount = 0;
+        int failedCount = 0;
+        for (Photo photo : photoRepository.findAll()) {
+            try {
+                storageService.delete(photo.getStorageFileId());
+                photoRepository.delete(photo);
+                deletedCount++;
+            } catch (RuntimeException ex) {
+                failedCount++;
+                log.warn("Failed to delete photo {} from storage during admin bulk delete.", photo.getId(), ex);
+            }
+        }
+        return new PhotoDeleteResult(deletedCount, failedCount);
+    }
+
     @Transactional(readOnly = true)
     public List<Photo> expiredPhotos() {
         return photoRepository.findByEvent_EventDateBefore(policyService.expiredCutoffDate());
@@ -232,5 +249,11 @@ public class PhotoService {
             clubPrefix = "clubs/" + event.getClub().getSlug();
         }
         return clubPrefix + "/" + event.getEventDate();
+    }
+
+    public record PhotoDeleteResult(int deletedCount, int failedCount) {
+        public boolean hasFailures() {
+            return failedCount > 0;
+        }
     }
 }

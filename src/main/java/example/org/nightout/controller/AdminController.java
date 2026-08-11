@@ -137,6 +137,21 @@ public class AdminController {
         return "redirect:/admin";
     }
 
+    @PostMapping("/admin/photos/delete-all")
+    public String deleteAllPhotos(RedirectAttributes redirectAttributes) {
+        PhotoService.PhotoDeleteResult result = photoService.deleteAllPhotos();
+        if (result.hasFailures()) {
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    result.deletedCount() + " photo" + plural(result.deletedCount()) + " deleted. "
+                            + result.failedCount() + " photo" + plural(result.failedCount()) + " could not be deleted and remain listed."
+            );
+        } else {
+            redirectAttributes.addFlashAttribute("successMessage", result.deletedCount() + " photo" + plural(result.deletedCount()) + " deleted.");
+        }
+        return "redirect:/admin";
+    }
+
     @GetMapping("/admin/clubs/{clubId}/qr.png")
     public ResponseEntity<byte[]> clubQr(@PathVariable Long clubId) {
         Club club = clubService.requireById(clubId);
@@ -158,5 +173,9 @@ public class AdminController {
         model.addAttribute("club", clubService.requireById(clubId));
         model.addAttribute("areas", clubService.areas());
         return "admin/club-edit";
+    }
+
+    private static String plural(int count) {
+        return count == 1 ? "" : "s";
     }
 }
