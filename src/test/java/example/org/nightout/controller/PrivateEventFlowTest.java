@@ -3,9 +3,11 @@ package example.org.nightout.controller;
 import example.org.nightout.entity.AppUser;
 import example.org.nightout.entity.PrivateEvent;
 import example.org.nightout.entity.PrivateEventMembership;
+import example.org.nightout.entity.PrivateEventPhoto;
 import example.org.nightout.entity.UserRole;
 import example.org.nightout.repository.AppUserRepository;
 import example.org.nightout.repository.PrivateEventMembershipRepository;
+import example.org.nightout.repository.PrivateEventPhotoRepository;
 import example.org.nightout.repository.PrivateEventRepository;
 import example.org.nightout.security.AuthenticatedUser;
 import example.org.nightout.service.PrivateEventService;
@@ -22,6 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
@@ -34,12 +37,15 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -60,6 +66,9 @@ class PrivateEventFlowTest {
     PrivateEventMembershipRepository membershipRepository;
 
     @Autowired
+    PrivateEventPhotoRepository privateEventPhotoRepository;
+
+    @Autowired
     AppUserRepository userRepository;
 
     @Autowired
@@ -73,6 +82,7 @@ class PrivateEventFlowTest {
 
     @BeforeEach
     void setUp() {
+        privateEventPhotoRepository.deleteAll();
         membershipRepository.deleteAll();
         privateEventRepository.deleteAll();
         userRepository.deleteAll();
@@ -111,9 +121,11 @@ class PrivateEventFlowTest {
                 .andExpect(content().string(containsString("name=\"eventName\"")))
                 .andExpect(content().string(containsString("name=\"location\"")))
                 .andExpect(content().string(containsString("name=\"password\"")))
-                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("name=\"eventDate\""))))
-                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("name=\"startTime\""))))
-                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("name=\"endTime\""))));
+                .andExpect(content().string(containsString("name=\"password\" type=\"text\"")))
+                .andExpect(content().string(not(containsString("type=\"password\""))))
+                .andExpect(content().string(not(containsString("name=\"eventDate\""))))
+                .andExpect(content().string(not(containsString("name=\"startTime\""))))
+                .andExpect(content().string(not(containsString("name=\"endTime\""))));
     }
 
     @Test
@@ -129,7 +141,7 @@ class PrivateEventFlowTest {
                 .andExpect(flash().attributeExists("successMessage"));
 
         PrivateEvent event = privateEventRepository.findAll().getFirst();
-        assertThat(event.getJoinCode()).matches("\\d{8}");
+        assertThat(event.getJoinCode()).matches("\\d{5}");
         assertThat(event.getEventDate()).isEqualTo(LocalDate.of(2026, 8, 12));
         assertThat(event.getStartTime()).isEqualTo(LocalTime.MIDNIGHT);
         assertThat(event.getEndTime()).isEqualTo(LocalTime.of(23, 59));
@@ -141,6 +153,17 @@ class PrivateEventFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Birthday Table")))
                 .andExpect(content().string(containsString("Code " + event.getJoinCode())));
+    }
+
+    @Test
+    void joinPageUsesFiveDigitCodeAndVisiblePassword() throws Exception {
+        mockMvc.perform(get("/private-events/join")
+                        .with(auth(guest, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("pattern=\"[0-9]{5}\"")))
+                .andExpect(content().string(containsString("maxlength=\"5\"")))
+                .andExpect(content().string(containsString("name=\"password\" type=\"text\"")))
+                .andExpect(content().string(not(containsString("type=\"password\""))));
     }
 
     @Test
@@ -179,7 +202,10 @@ class PrivateEventFlowTest {
                         .with(auth(guest, "ROLE_USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Friends Only")))
-                .andExpect(content().string(containsString(event.getJoinCode())));
+                .andExpect(content().string(containsString(event.getJoinCode())))
+                .andExpect(content().string(containsString("Upload Photos")))
+                .andExpect(content().string(not(containsString("Membership"))))
+                .andExpect(content().string(not(containsString("class=\"eyebrow\""))));
     }
 
     @Test
@@ -190,7 +216,7 @@ class PrivateEventFlowTest {
         event.setEventDate(LocalDate.of(2026, 8, 12));
         event.setStartTime(LocalTime.MIDNIGHT);
         event.setEndTime(LocalTime.of(23, 59));
-        event.setJoinCode("12345678");
+        event.setJoinCode("12345");
         event.setPasswordHash(passwordEncoder.encode("correct-password"));
         event.setCreatedAt(Instant.now(clock));
         event = privateEventRepository.save(event);
@@ -204,7 +230,41 @@ class PrivateEventFlowTest {
                         .with(auth(creator, "ROLE_USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Creator Only")))
-                .andExpect(content().string(containsString("Joined")));
+                .andExpect(content().string(containsString("Upload Photos")))
+                .andExpect(content().string(not(containsString("Membership"))));
+    }
+
+    @Test
+    void participantUploadsPrivateEventPhotosAfterCreation() throws Exception {
+        PrivateEvent event = privateEventService.create(
+                principal(creator, "ROLE_USER"),
+                "Photo Party",
+                "Cape Town",
+                "correct-password"
+        );
+
+        mockMvc.perform(multipart("/private-events/{code}/upload", event.getJoinCode())
+                        .file(jpeg("party.jpg"))
+                        .with(auth(creator, "ROLE_USER"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/private-events/" + event.getJoinCode()))
+                .andExpect(flash().attribute("successMessage", "1 photo uploaded successfully."));
+
+        PrivateEventPhoto photo = privateEventPhotoRepository.findAll().getFirst();
+        assertThat(photo.getPrivateEvent().getId()).isEqualTo(event.getId());
+        assertThat(photo.getStorageFileId()).startsWith("private-events/" + event.getJoinCode() + "/");
+
+        mockMvc.perform(get("/private-events/{code}", event.getJoinCode())
+                        .with(auth(creator, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/private-event-photos/" + photo.getId())))
+                .andExpect(content().string(containsString("party.jpg")));
+
+        mockMvc.perform(get("/private-event-photos/{id}", photo.getId())
+                        .with(auth(creator, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("image/jpeg"));
     }
 
     @Test
@@ -215,7 +275,7 @@ class PrivateEventFlowTest {
         event.setEventDate(LocalDate.of(2026, 7, 10));
         event.setStartTime(LocalTime.MIDNIGHT);
         event.setEndTime(LocalTime.of(23, 59));
-        event.setJoinCode("12345678");
+        event.setJoinCode("12345");
         event.setPasswordHash(passwordEncoder.encode("correct-password"));
         event.setCreatedAt(Instant.parse("2026-07-10T10:00:00Z"));
         event = privateEventRepository.save(event);
@@ -255,6 +315,10 @@ class PrivateEventFlowTest {
     private static UsernamePasswordAuthenticationToken authentication(AppUser user, String... authorities) {
         AuthenticatedUser principal = principal(user, authorities);
         return new UsernamePasswordAuthenticationToken(principal, "n/a", principal.getAuthorities());
+    }
+
+    private static MockMultipartFile jpeg(String filename) {
+        return new MockMultipartFile("photos", filename, "image/jpeg", new byte[]{(byte) 0xff, (byte) 0xd8, (byte) 0xff, 0x00});
     }
 
     @TestConfiguration

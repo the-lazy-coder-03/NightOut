@@ -18,21 +18,70 @@
 </header>
 <main class="shell">
     <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Saved.</div>
+    <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Upload failed.</div>
 
     <section class="hero">
-        <span class="eyebrow" th:text="${#temporals.format(eventView.event.eventDate, 'yyyy-MM-dd')}">2026-08-08</span>
         <h1 th:text="${eventView.event.eventName}">Private Event</h1>
         <p th:if="${eventView.event.location != null}" th:text="${eventView.event.location}">Location</p>
     </section>
 
     <section class="section">
-        <div class="card form-grid two">
-            <p><strong>Code</strong><br><span th:text="${eventView.event.joinCode}">12345678</span></p>
-            <p><strong>Created</strong><br><span th:text="${#temporals.format(eventView.event.eventDate, 'yyyy-MM-dd')}">2026-08-08</span></p>
+        <div class="card form-grid two private-event-details">
+            <p><strong>Code</strong><br><span th:text="${eventView.event.joinCode}">12345</span></p>
             <p><strong>Expires</strong><br><span th:text="${#temporals.format(eventView.expiresOn, 'yyyy-MM-dd')}">2026-08-15</span></p>
-            <p><strong>Membership</strong><br><span>Joined</span></p>
         </div>
     </section>
+
+    <section class="section">
+        <div class="upload-bar">
+            <button class="button" type="button" data-upload-dialog-open>Upload Photos</button>
+        </div>
+        <div th:if="${#lists.isEmpty(photos)}" class="empty">No photos have been uploaded for this private event yet.</div>
+        <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
+            <button class="gallery-button" th:each="photo, stat : ${photos}" th:attr="data-gallery-src=@{/private-event-photos/{id}(id=${photo.id})}" type="button">
+                <img th:src="@{/private-event-photos/{id}(id=${photo.id})}" th:alt="${photo.originalFilename}"
+                     width="320" height="320" decoding="async"
+                     th:attr="loading=${stat.index < 8 ? 'eager' : 'lazy'},fetchpriority=${stat.index < 4 ? 'high' : 'auto'}">
+            </button>
+        </div>
+    </section>
+
+    <dialog class="upload-dialog" data-upload-dialog>
+        <div class="upload-dialog-panel">
+            <div class="upload-dialog-head">
+                <h2>Upload</h2>
+                <button class="icon-button" type="button" data-upload-dialog-close aria-label="Close">&times;</button>
+            </div>
+            <form class="upload-choice-form" method="post" enctype="multipart/form-data" data-upload-form data-upload-choice-form
+                  th:action="@{/private-events/{code}/upload(code=${eventView.event.joinCode})}"
+                  th:data-upload-success-url="@{/private-events/{code}(code=${eventView.event.joinCode})}"
+                  th:data-upload-error-url="@{/private-events/{code}(code=${eventView.event.joinCode})}"
+                  th:data-upload-max-files="${maxUploadCount}"
+                  th:data-upload-max-file-bytes="${maxUploadBytes}"
+                  th:data-upload-max-batch-bytes="${maxUploadBatchBytes}">
+                <div class="upload-choice-actions">
+                    <label class="button secondary upload-choice-button">
+                        Take Photo
+                        <input class="visually-hidden" data-photo-input data-auto-submit type="file" name="photos" accept="image/*" capture="environment">
+                    </label>
+                    <label class="button upload-choice-button">
+                        Upload From Device
+                        <input class="visually-hidden" data-photo-input data-auto-submit type="file" name="photos" accept="image/jpeg,image/png,image/webp" multiple>
+                    </label>
+                </div>
+                <p class="meta" data-photo-summary>No photos selected</p>
+                <button class="visually-hidden" data-upload-submit type="submit">Upload Photos</button>
+            </form>
+        </div>
+    </dialog>
 </main>
+<div class="lightbox" data-lightbox aria-hidden="true">
+    <button class="close" type="button" data-lightbox-close aria-label="Close">&times;</button>
+    <button class="prev" type="button" data-lightbox-prev aria-label="Previous">‹</button>
+    <img data-lightbox-image alt="" decoding="async">
+    <button class="next" type="button" data-lightbox-next aria-label="Next">›</button>
+</div>
+<script src="/js/gallery.js"></script>
+<script src="/js/upload.js"></script>
 </body>
 </html>

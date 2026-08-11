@@ -29,9 +29,9 @@
 
     <form class="card form-grid two" method="post" th:action="@{/private-events/join}">
         <label>Code
-            <input name="joinCode" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" th:value="${joinCode}" required>
+            <input name="joinCode" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" th:value="${joinCode}" required>
         </label>
-        <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+        <label>Password <input name="password" type="text" autocomplete="off" required></label>
         <button class="button" type="submit">Join Event</button>
     </form>
 </main>

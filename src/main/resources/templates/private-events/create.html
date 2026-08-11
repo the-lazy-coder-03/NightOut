@@ -28,7 +28,7 @@
     <form class="card form-grid" method="post" th:action="@{/private-events}">
         <label>Event name <input name="eventName" autocomplete="off" required></label>
         <label>Location <input name="location" autocomplete="street-address"></label>
-        <label>Password <input name="password" type="password" minlength="8" autocomplete="new-password" required></label>
+        <label>Password <input name="password" type="text" minlength="8" autocomplete="off" required></label>
         <button class="button" type="submit">Create Event</button>
     </form>
 </main>

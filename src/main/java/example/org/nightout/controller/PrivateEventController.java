@@ -1,11 +1,14 @@
 package example.org.nightout.controller;
 
 import example.org.nightout.dto.PrivateEventView;
+import example.org.nightout.config.AppProperties;
 import example.org.nightout.entity.PrivateEvent;
 import example.org.nightout.exception.BusinessRuleException;
 import example.org.nightout.security.AuthenticatedUser;
+import example.org.nightout.service.PrivateEventPhotoService;
 import example.org.nightout.service.PrivateEventService;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +17,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -21,9 +26,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class PrivateEventController {
 
     private final PrivateEventService privateEventService;
+    private final PrivateEventPhotoService privateEventPhotoService;
+    private final AppProperties properties;
 
-    public PrivateEventController(PrivateEventService privateEventService) {
+    public PrivateEventController(PrivateEventService privateEventService, PrivateEventPhotoService privateEventPhotoService, AppProperties properties) {
         this.privateEventService = privateEventService;
+        this.privateEventPhotoService = privateEventPhotoService;
+        this.properties = properties;
     }
 
     @GetMapping
@@ -83,6 +92,56 @@ public class PrivateEventController {
             model.addAttribute("joinCode", joinCode);
             return "private-events/join";
         }
+        model.addAttribute("photos", privateEventPhotoService.photosFor(user, joinCode));
+        addUploadLimits(model);
         return "private-events/event";
+    }
+
+    @PostMapping(value = "/{joinCode}/upload", headers = "X-NightOut-Batch-Upload=true")
+    @ResponseBody
+    public ResponseEntity<UploadBatchResponse> uploadBatch(@AuthenticationPrincipal AuthenticatedUser user,
+                                                           @PathVariable String joinCode,
+                                                           @RequestParam(value = "photos", required = false) MultipartFile[] photos) {
+        String redirectUrl = eventUrl(joinCode);
+        try {
+            int count = privateEventPhotoService.uploadPhotos(user, joinCode, photos).size();
+            return ResponseEntity.ok(UploadBatchResponse.success(count, redirectUrl));
+        } catch (BusinessRuleException ex) {
+            return ResponseEntity.badRequest().body(UploadBatchResponse.failure(ex.getMessage(), redirectUrl));
+        }
+    }
+
+    @PostMapping("/{joinCode}/upload")
+    public String upload(@AuthenticationPrincipal AuthenticatedUser user,
+                         @PathVariable String joinCode,
+                         @RequestParam(value = "photos", required = false) MultipartFile[] photos,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            int count = privateEventPhotoService.uploadPhotos(user, joinCode, photos).size();
+            redirectAttributes.addFlashAttribute("successMessage", count + " photo" + (count == 1 ? "" : "s") + " uploaded successfully.");
+        } catch (BusinessRuleException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:" + eventUrl(joinCode);
+    }
+
+    private void addUploadLimits(Model model) {
+        model.addAttribute("maxUploadCount", properties.getMaxUploadCount());
+        model.addAttribute("maxUploadBytes", properties.getMaxUploadBytes());
+        model.addAttribute("maxUploadBatchBytes", Math.max(1, properties.getMaxRequestBytes() * 9 / 10));
+    }
+
+    private static String eventUrl(String joinCode) {
+        return "/private-events/" + joinCode;
+    }
+
+    private record UploadBatchResponse(boolean success, int count, String message, String redirectUrl) {
+        static UploadBatchResponse success(int count, String redirectUrl) {
+            return new UploadBatchResponse(true, count, null, redirectUrl);
+        }
+
+        static UploadBatchResponse failure(String message, String redirectUrl) {
+            return new UploadBatchResponse(false, 0, message, redirectUrl);
+        }
     }
 }

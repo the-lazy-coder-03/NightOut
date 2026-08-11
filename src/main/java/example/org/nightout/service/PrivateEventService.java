@@ -27,7 +27,7 @@ import java.util.Objects;
 @Service
 public class PrivateEventService {
 
-    private static final int JOIN_CODE_BOUND = 100_000_000;
+    private static final int JOIN_CODE_BOUND = 100_000;
     private static final int MAX_JOIN_CODE_ATTEMPTS = 25;
     private static final LocalTime DEFAULT_START_TIME = LocalTime.MIDNIGHT;
     private static final LocalTime DEFAULT_END_TIME = LocalTime.of(23, 59);
@@ -160,7 +160,7 @@ public class PrivateEventService {
 
     private String generateJoinCode() {
         for (int attempt = 0; attempt < MAX_JOIN_CODE_ATTEMPTS; attempt++) {
-            String code = String.format("%08d", secureRandom.nextInt(JOIN_CODE_BOUND));
+            String code = String.format("%05d", secureRandom.nextInt(JOIN_CODE_BOUND));
             if (!privateEventRepository.existsByJoinCode(code)) {
                 return code;
             }
@@ -170,7 +170,7 @@ public class PrivateEventService {
 
     private static String normalizeJoinCode(String joinCode) {
         String normalized = requireText(joinCode, "Private event code is required.").replaceAll("\\s+", "");
-        if (!normalized.matches("\\d{8}")) {
+        if (!normalized.matches("\\d{5}")) {
             throw new ResourceNotFoundException("Private event not found.");
         }
         return normalized;
