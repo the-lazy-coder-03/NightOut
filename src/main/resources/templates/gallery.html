@@ -19,7 +19,7 @@
     <section class="hero">
         <span class="eyebrow" th:text="${club.name}">HALO</span>
         <h1 th:text="${eventView.event.eventName}">Saturday</h1>
-        <p th:text="${#temporals.format(eventView.event.eventDate, 'EEEE d MMMM yyyy') + ' | Photos available until ' + #temporals.format(eventView.expiresOn, 'd MMMM yyyy')}">Date</p>
+        <p th:text="${#temporals.format(eventView.event.eventDate, 'EEEE d MMMM') + ' | Photos available until ' + #temporals.format(eventView.expiresOn, 'd MMMM')}">Date</p>
     </section>
 
     <section class="section">

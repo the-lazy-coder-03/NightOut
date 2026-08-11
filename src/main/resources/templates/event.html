@@ -16,8 +16,8 @@
 <main class="shell">
     <section class="hero">
         <span class="eyebrow" th:text="${club.name}">HALO</span>
-        <h1 th:text="${#temporals.format(eventView.event.eventDate, 'EEEE d MMMM yyyy')}">Saturday 8 August 2026</h1>
-        <p th:text="${eventView.photoCount + ' photos. Available until ' + #temporals.format(eventView.expiresOn, 'd MMMM yyyy')}">143 photos</p>
+        <h1 th:text="${#temporals.format(eventView.event.eventDate, 'EEEE d MMMM')}">Saturday 8 August</h1>
+        <p th:text="${eventView.photoCount + ' photos. Available until ' + #temporals.format(eventView.expiresOn, 'd MMMM')}">143 photos</p>
         <span class="status" th:classappend="${eventView.status.name().toLowerCase()}" th:text="${eventView.status}">RECENT</span>
     </section>
 

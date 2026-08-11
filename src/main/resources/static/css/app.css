@@ -261,6 +261,11 @@ p {
     border-bottom: 1px solid var(--line);
 }
 
+.club-grid .card-link h3 {
+    width: 100%;
+    text-align: center;
+}
+
 .club-hero-image {
     display: block;
     width: min(620px, 100%);

@@ -16,7 +16,6 @@
 </header>
 <main class="shell">
     <section class="hero">
-        <img class="club-hero-image" th:if="${club.logoUrl}" th:src="${club.logoUrl}" th:alt="${club.name}" loading="lazy">
         <h1 th:text="${club.name}">HALO</h1>
     </section>
 
@@ -26,9 +25,8 @@
             <a class="card card-link date-card" th:each="nightDate : ${nightDates}" th:href="@{/clubs/{slug}/dates/{date}(slug=${club.slug},date=${nightDate.date})}">
                 <span class="status" th:classappend="${nightDate.current ? 'active' : 'recent'}" th:text="${nightDate.current ? 'Current night' : 'Past night'}">Current night</span>
                 <h3 th:text="${#temporals.format(nightDate.date, 'EEEE')}">Friday</h3>
-                <span class="date-number" th:text="${#temporals.format(nightDate.date, 'd MMMM yyyy')}">7 August 2026</span>
-                <span class="meta" th:if="${#lists.isEmpty(nightDate.events)}">No pictures yet</span>
-                <span class="meta" th:if="${!#lists.isEmpty(nightDate.events)}" th:text="${nightDate.photoCount} + ' photos'">143 photos</span>
+                <span class="date-number" th:text="${#temporals.format(nightDate.date, 'd MMMM')}">7 August</span>
+                <span class="meta" th:if="${nightDate.photoCount > 0}" th:text="${nightDate.photoCount} + ' photos'">143 photos</span>
             </a>
         </div>
     </section>

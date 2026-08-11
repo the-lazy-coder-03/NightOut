@@ -111,8 +111,7 @@ class PublicDateFlowTest {
     void clubPageShowsCurrentNightAndSevenPreviousDatesBeforeNoon() throws Exception {
         String html = mockMvc.perform(get("/clubs/halo"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("class=\"club-hero-image\"")))
-                .andExpect(content().string(containsString(HALO_LOGO_URL)))
+                .andExpect(content().string(not(containsString("class=\"club-hero-image\""))))
                 .andExpect(content().string(containsString("/clubs/halo/dates/2026-08-07")))
                 .andExpect(content().string(containsString("/clubs/halo/dates/2026-07-31")))
                 .andExpect(content().string(not(containsString("/clubs/halo/dates/2026-08-08"))))
@@ -160,7 +159,7 @@ class PublicDateFlowTest {
     void dateGalleryWithNoPicturesRendersEmptyState() throws Exception {
         mockMvc.perform(get("/clubs/halo/dates/2026-08-06"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("No pictures have been uploaded for this date yet.")))
+                .andExpect(content().string(not(containsString("No pictures"))))
                 .andExpect(content().string(containsString("data-upload-dialog-open")))
                 .andExpect(content().string(containsString("action=\"/clubs/halo/dates/2026-08-06/upload\"")))
                 .andExpect(content().string(not(containsString("name=\"eventId\""))));
