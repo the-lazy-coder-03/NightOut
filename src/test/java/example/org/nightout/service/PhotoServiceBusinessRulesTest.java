@@ -3,6 +3,7 @@ package example.org.nightout.service;
 import example.org.nightout.entity.Club;
 import example.org.nightout.entity.NightEvent;
 import example.org.nightout.entity.Photo;
+import example.org.nightout.entity.PhotoOptimizationStatus;
 import example.org.nightout.entity.PhotoStatus;
 import example.org.nightout.exception.BusinessRuleException;
 import example.org.nightout.exception.ResourceNotFoundException;
@@ -18,6 +19,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -28,8 +30,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 
-@SpringBootTest
+@SpringBootTest(properties = "nightout.image-optimization.enabled=true")
 class PhotoServiceBusinessRulesTest {
 
     private static final LocalDate TODAY = LocalDate.of(2026, 8, 10);
@@ -46,6 +50,9 @@ class PhotoServiceBusinessRulesTest {
     @Autowired
     PhotoRepository photoRepository;
 
+    @MockitoBean
+    ImageOptimizationService imageOptimizationService;
+
     Club halo;
     Club modular;
     NightEvent todayEvent;
@@ -59,6 +66,7 @@ class PhotoServiceBusinessRulesTest {
         photoRepository.deleteAll();
         eventRepository.deleteAll();
         clubRepository.deleteAll();
+        reset(imageOptimizationService);
 
         halo = saveClub("HALO", "halo");
         modular = saveClub("Modular", "modular");
@@ -75,6 +83,8 @@ class PhotoServiceBusinessRulesTest {
 
         assertThat(photos).hasSize(1);
         assertThat(photos.getFirst().getStatus()).isEqualTo(PhotoStatus.APPROVED);
+        assertThat(photos.getFirst().getOptimizationStatus()).isEqualTo(PhotoOptimizationStatus.PENDING);
+        verify(imageOptimizationService).enqueue(photos.getFirst().getId());
     }
 
     @Test

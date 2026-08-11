@@ -42,6 +42,22 @@ public class Photo {
     private long fileSize;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "optimization_status", nullable = false)
+    private PhotoOptimizationStatus optimizationStatus = PhotoOptimizationStatus.COMPLETE;
+
+    @Column(name = "optimization_attempts", nullable = false)
+    private int optimizationAttempts;
+
+    @Column(name = "optimization_error")
+    private String optimizationError;
+
+    @Column(name = "optimization_started_at")
+    private Instant optimizationStartedAt;
+
+    @Column(name = "optimized_at")
+    private Instant optimizedAt;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PhotoStatus status = PhotoStatus.APPROVED;
 
@@ -101,6 +117,46 @@ public class Photo {
 
     public void setFileSize(long fileSize) {
         this.fileSize = fileSize;
+    }
+
+    public PhotoOptimizationStatus getOptimizationStatus() {
+        return optimizationStatus;
+    }
+
+    public void setOptimizationStatus(PhotoOptimizationStatus optimizationStatus) {
+        this.optimizationStatus = optimizationStatus;
+    }
+
+    public int getOptimizationAttempts() {
+        return optimizationAttempts;
+    }
+
+    public void setOptimizationAttempts(int optimizationAttempts) {
+        this.optimizationAttempts = optimizationAttempts;
+    }
+
+    public String getOptimizationError() {
+        return optimizationError;
+    }
+
+    public void setOptimizationError(String optimizationError) {
+        this.optimizationError = optimizationError;
+    }
+
+    public Instant getOptimizationStartedAt() {
+        return optimizationStartedAt;
+    }
+
+    public void setOptimizationStartedAt(Instant optimizationStartedAt) {
+        this.optimizationStartedAt = optimizationStartedAt;
+    }
+
+    public Instant getOptimizedAt() {
+        return optimizedAt;
+    }
+
+    public void setOptimizedAt(Instant optimizedAt) {
+        this.optimizedAt = optimizedAt;
     }
 
     public PhotoStatus getStatus() {

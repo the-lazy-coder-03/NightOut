@@ -1,44 +1,59 @@
 package example.org.nightout.service;
 
 import example.org.nightout.config.AppProperties;
+import example.org.nightout.dto.PhotoPreloadView;
 import example.org.nightout.entity.NightEvent;
 import example.org.nightout.entity.Photo;
+import example.org.nightout.entity.PhotoOptimizationStatus;
 import example.org.nightout.entity.PhotoStatus;
 import example.org.nightout.exception.BusinessRuleException;
 import example.org.nightout.exception.ResourceNotFoundException;
+import example.org.nightout.model.Area;
 import example.org.nightout.repository.PhotoRepository;
 import example.org.nightout.storage.StorageFile;
 import example.org.nightout.storage.StorageResource;
 import example.org.nightout.storage.StorageService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class PhotoService {
+
+    private static final Logger log = LoggerFactory.getLogger(PhotoService.class);
+    private static final int AREA_PRELOAD_LIMIT_PER_CLUB = 12;
 
     private final PhotoRepository photoRepository;
     private final EventService eventService;
     private final EventPolicyService policyService;
     private final StorageService storageService;
     private final AppProperties properties;
+    private final ImageOptimizationService imageOptimizationService;
 
-    public PhotoService(PhotoRepository photoRepository, EventService eventService, EventPolicyService policyService, StorageService storageService, AppProperties properties) {
+    public PhotoService(PhotoRepository photoRepository, EventService eventService, EventPolicyService policyService, StorageService storageService, AppProperties properties, ImageOptimizationService imageOptimizationService) {
         this.photoRepository = photoRepository;
         this.eventService = eventService;
         this.policyService = policyService;
         this.storageService = storageService;
         this.properties = properties;
+        this.imageOptimizationService = imageOptimizationService;
     }
 
     @Transactional
@@ -87,6 +102,41 @@ public class PhotoService {
             return List.of();
         }
         return photoRepository.findByEventInAndStatusOrderByUploadedAtDesc(availableEvents, PhotoStatus.APPROVED);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PhotoPreloadView> latestAreaPhotoPreloads(Area area) {
+        LocalDate startDate = policyService.expiredCutoffDate();
+        LocalDate endDate = policyService.currentGalleryDate();
+        List<Photo> areaPhotos = photoRepository.findAreaApprovedPhotosForPreload(
+                PhotoStatus.APPROVED,
+                area.getDisplayName(),
+                startDate,
+                endDate
+        );
+
+        List<PhotoPreloadView> preloads = new ArrayList<>();
+        Map<Long, LocalDate> preloadDateByClub = new HashMap<>();
+        Map<Long, Integer> preloadCountByClub = new HashMap<>();
+
+        for (Photo photo : areaPhotos) {
+            NightEvent event = photo.getEvent();
+            Long clubId = event.getClub().getId();
+            LocalDate eventDate = event.getEventDate();
+            LocalDate preloadDate = preloadDateByClub.computeIfAbsent(clubId, ignored -> eventDate);
+            if (!preloadDate.equals(eventDate)) {
+                continue;
+            }
+
+            int preloadCount = preloadCountByClub.getOrDefault(clubId, 0);
+            if (preloadCount >= AREA_PRELOAD_LIMIT_PER_CLUB) {
+                continue;
+            }
+
+            preloads.add(new PhotoPreloadView("/photos/" + photo.getId()));
+            preloadCountByClub.put(clubId, preloadCount + 1);
+        }
+        return preloads;
     }
 
     @Transactional(readOnly = true)
@@ -153,8 +203,37 @@ public class PhotoService {
         photo.setFileSize(stored.sizeBytes());
         photo.setStorageFileId(stored.id());
         photo.setStatus(PhotoStatus.APPROVED);
+        photo.setOptimizationStatus(properties.getImageOptimization().isEnabled()
+                ? PhotoOptimizationStatus.PENDING
+                : PhotoOptimizationStatus.COMPLETE);
         photo.setUploadedAt(Instant.now());
-        return photoRepository.save(photo);
+        Photo saved = photoRepository.save(photo);
+        enqueueOptimizationAfterCommit(saved);
+        return saved;
+    }
+
+    private void enqueueOptimizationAfterCommit(Photo photo) {
+        if (photo.getOptimizationStatus() != PhotoOptimizationStatus.PENDING) {
+            return;
+        }
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    enqueueOptimization(photo.getId());
+                }
+            });
+            return;
+        }
+        enqueueOptimization(photo.getId());
+    }
+
+    private void enqueueOptimization(Long photoId) {
+        try {
+            imageOptimizationService.enqueue(photoId);
+        } catch (RuntimeException ex) {
+            log.warn("Failed to queue image optimization for photo {}; scheduled processing will retry it.", photoId, ex);
+        }
     }
 
     private static String storagePrefix(NightEvent event) {

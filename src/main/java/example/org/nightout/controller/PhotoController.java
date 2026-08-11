@@ -1,6 +1,7 @@
 package example.org.nightout.controller;
 
 import example.org.nightout.entity.Photo;
+import example.org.nightout.entity.PhotoOptimizationStatus;
 import example.org.nightout.service.PhotoService;
 import example.org.nightout.storage.StorageResource;
 
@@ -28,10 +29,16 @@ public class PhotoController {
     public ResponseEntity<Resource> photo(@PathVariable Long photoId) {
         Photo photo = photoService.publicPhoto(photoId);
         StorageResource stored = photoService.retrieve(photo);
+        CacheControl cacheControl = photo.getOptimizationStatus() == PhotoOptimizationStatus.COMPLETE
+                ? CacheControl.maxAge(Duration.ofDays(7)).cachePublic()
+                : CacheControl.noCache().cachePublic();
+        long lastModified = photo.getOptimizedAt() == null ? photo.getUploadedAt().toEpochMilli() : photo.getOptimizedAt().toEpochMilli();
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(photo.getMimeType()))
                 .contentLength(stored.contentLength())
-                .cacheControl(CacheControl.maxAge(Duration.ofHours(6)).cachePublic())
+                .cacheControl(cacheControl)
+                .eTag("\"photo-" + photo.getId() + "-" + photo.getFileSize() + "-" + photo.getOptimizationStatus() + "\"")
+                .lastModified(lastModified)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + photo.getSafeFilename() + "\"")
                 .body(stored.resource());
     }

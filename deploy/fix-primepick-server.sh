@@ -90,6 +90,11 @@ if [ -f /etc/nightout/nightout.env ]; then
   set_env NIGHTOUT_S3_BUCKET nightout
   set_env NIGHTOUT_S3_REGION us-east-1
   set_env NIGHTOUT_S3_PATH_STYLE true
+  set_env_if_missing NIGHTOUT_IMAGE_OPTIMIZATION_ENABLED true
+  set_env_if_missing NIGHTOUT_IMAGE_OPTIMIZATION_MAX_DIMENSION 1080
+  set_env_if_missing NIGHTOUT_IMAGE_OPTIMIZATION_JPEG_QUALITY 0.82
+  set_env_if_missing NIGHTOUT_IMAGE_OPTIMIZATION_DELETE_ORIGINAL true
+  set_env_if_missing NIGHTOUT_IMAGE_OPTIMIZATION_BATCH_SIZE 10
   ensure_secret NIGHTOUT_S3_ACCESS_KEY
   ensure_secret NIGHTOUT_S3_SECRET_KEY
   set_env_if_missing RCLONE_REMOTE drive_primary:

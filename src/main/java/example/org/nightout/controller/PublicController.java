@@ -54,6 +54,7 @@ public class PublicController {
         Area area = clubService.requireAreaBySlug(areaSlug);
         model.addAttribute("area", area);
         model.addAttribute("clubs", clubService.activeClubsForArea(area));
+        model.addAttribute("photoPreloads", photoService.latestAreaPhotoPreloads(area));
         return "area";
     }
 

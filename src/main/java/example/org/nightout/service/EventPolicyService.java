@@ -67,6 +67,10 @@ public class EventPolicyService {
         return today().minusDays(properties.getRetentionDays());
     }
 
+    public LocalDate currentGalleryDate() {
+        return today();
+    }
+
     public void requireUploadAvailable(NightEvent event) {
         requireUploadAvailable(statusFor(event));
     }

@@ -31,5 +31,9 @@
         </div>
     </section>
 </main>
+<div hidden aria-hidden="true">
+    <span th:each="preload : ${photoPreloads}" th:data-preload-src="${preload.url}"></span>
+</div>
+<script src="/js/area-preload.js"></script>
 </body>
 </html>

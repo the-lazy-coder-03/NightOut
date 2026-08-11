@@ -63,6 +63,8 @@ class PublicDateFlowTest {
     Club modular;
     NightEvent haloFriday;
     NightEvent modularFriday;
+    Photo haloFridayPhoto;
+    Photo modularFridayPhoto;
 
     @BeforeEach
     void setUp() {
@@ -74,8 +76,8 @@ class PublicDateFlowTest {
         modular = saveClub("Modular", "modular", "Claremont");
         haloFriday = saveEvent(halo, "Friday Night", LocalDate.of(2026, 8, 7));
         modularFriday = saveEvent(modular, "Other Friday", LocalDate.of(2026, 8, 7));
-        savePhoto(haloFriday, "halo-friday.jpg", PhotoStatus.APPROVED);
-        savePhoto(modularFriday, "modular-friday.jpg", PhotoStatus.APPROVED);
+        haloFridayPhoto = savePhoto(haloFriday, "halo-friday.jpg", PhotoStatus.APPROVED);
+        modularFridayPhoto = savePhoto(modularFriday, "modular-friday.jpg", PhotoStatus.APPROVED);
     }
 
     @Test
@@ -87,6 +89,7 @@ class PublicDateFlowTest {
                 .andExpect(content().string(containsString("/areas/claremont")))
                 .andExpect(content().string(containsString("/areas/stellenbosch")))
                 .andExpect(content().string(not(containsString("/clubs/halo"))))
+                .andExpect(content().string(not(containsString("data-preload-src"))))
                 .andExpect(content().string(not(containsString("Friday Night"))));
     }
 
@@ -100,6 +103,51 @@ class PublicDateFlowTest {
                 .andExpect(content().string(containsString(HALO_LOGO_URL)))
                 .andExpect(content().string(containsString("HALO")))
                 .andExpect(content().string(not(containsString("Modular"))));
+    }
+
+    @Test
+    void areaPageIncludesSelectedSuburbPreloadsOnly() throws Exception {
+        mockMvc.perform(get("/areas/cape-town"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/js/area-preload.js")))
+                .andExpect(content().string(containsString("data-preload-src=\"/photos/" + haloFridayPhoto.getId() + "\"")))
+                .andExpect(content().string(not(containsString("/photos/" + modularFridayPhoto.getId()))));
+    }
+
+    @Test
+    void areaPreloadUsesLatestAvailableDateWithApprovedPhotos() throws Exception {
+        Club archive = saveClub("Archive", "archive", "Cape Town");
+        NightEvent currentNoApprovedPhotos = saveEvent(archive, "Current Empty Night", LocalDate.of(2026, 8, 7));
+        NightEvent olderWithPhotos = saveEvent(archive, "Older Photo Night", LocalDate.of(2026, 8, 6));
+        Photo pendingCurrentPhoto = savePhoto(currentNoApprovedPhotos, "archive-pending.jpg", PhotoStatus.PENDING);
+        Photo olderApprovedPhoto = savePhoto(olderWithPhotos, "archive-approved.jpg", PhotoStatus.APPROVED);
+
+        mockMvc.perform(get("/areas/cape-town"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-preload-src=\"/photos/" + olderApprovedPhoto.getId() + "\"")))
+                .andExpect(content().string(not(containsString("/photos/" + pendingCurrentPhoto.getId()))));
+    }
+
+    @Test
+    void areaPreloadLimitsToTwelvePhotosPerClub() throws Exception {
+        Club limit = saveClub("Limit", "limit", "Cape Town");
+        NightEvent limitFriday = saveEvent(limit, "Limit Friday", LocalDate.of(2026, 8, 7));
+        List<Photo> photos = new java.util.ArrayList<>();
+        Instant baseUpload = Instant.parse("2026-08-07T22:00:00Z");
+        for (int index = 0; index < 13; index++) {
+            photos.add(savePhoto(limitFriday, "limit-" + index + ".jpg", PhotoStatus.APPROVED, baseUpload.plusSeconds(index)));
+        }
+
+        String html = mockMvc.perform(get("/areas/cape-town"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(html).doesNotContain("/photos/" + photos.getFirst().getId());
+        assertThat(photos.subList(1, 13)).allSatisfy(photo ->
+                assertThat(html).contains("data-preload-src=\"/photos/" + photo.getId() + "\"")
+        );
     }
 
     @Test
@@ -145,6 +193,11 @@ class PublicDateFlowTest {
                 .andExpect(content().string(containsString("capture=\"environment\"")))
                 .andExpect(content().string(containsString("accept=\"image/jpeg,image/png,image/webp\"")))
                 .andExpect(content().string(containsString("multiple")))
+                .andExpect(content().string(containsString("width=\"320\"")))
+                .andExpect(content().string(containsString("height=\"320\"")))
+                .andExpect(content().string(containsString("decoding=\"async\"")))
+                .andExpect(content().string(containsString("loading=\"eager\"")))
+                .andExpect(content().string(containsString("fetchpriority=\"high\"")))
                 .andExpect(content().string(containsString("action=\"/clubs/halo/dates/2026-08-07/upload\"")))
                 .andExpect(content().string(containsString("data-upload-success-url=\"/clubs/halo/dates/2026-08-07\"")))
                 .andExpect(content().string(containsString("data-upload-max-files=\"12\"")))
@@ -169,6 +222,18 @@ class PublicDateFlowTest {
                 .andExpect(content().string(containsString("data-upload-dialog-open")))
                 .andExpect(content().string(containsString("action=\"/clubs/halo/dates/2026-08-06/upload\"")))
                 .andExpect(content().string(not(containsString("name=\"eventId\""))));
+    }
+
+    @Test
+    void dateGalleryLazyLoadsPhotosAfterTheFirstVisibleSet() throws Exception {
+        for (int i = 0; i < 9; i++) {
+            savePhoto(haloFriday, "extra-" + i + ".jpg", PhotoStatus.APPROVED);
+        }
+
+        mockMvc.perform(get("/clubs/halo/dates/2026-08-07"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("loading=\"eager\"")))
+                .andExpect(content().string(containsString("loading=\"lazy\"")));
     }
 
     @Test
@@ -334,6 +399,10 @@ class PublicDateFlowTest {
     }
 
     private Photo savePhoto(NightEvent event, String filename, PhotoStatus status) {
+        return savePhoto(event, filename, status, null);
+    }
+
+    private Photo savePhoto(NightEvent event, String filename, PhotoStatus status, Instant uploadedAt) {
         Photo photo = new Photo();
         photo.setEvent(event);
         photo.setOriginalFilename(filename);
@@ -342,6 +411,9 @@ class PublicDateFlowTest {
         photo.setFileSize(4);
         photo.setStorageFileId(filename);
         photo.setStatus(status);
+        if (uploadedAt != null) {
+            photo.setUploadedAt(uploadedAt);
+        }
         return photoRepository.save(photo);
     }
 

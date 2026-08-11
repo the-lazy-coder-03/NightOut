@@ -11,6 +11,7 @@ public class AppProperties {
     private long maxUploadBytes = 25 * 1024 * 1024;
     private long maxRequestBytes = 300 * 1024 * 1024;
     private int maxUploadCount = 12;
+    private ImageOptimization imageOptimization = new ImageOptimization();
     private String storageProvider = "local";
     private String localStoragePath = "./storage/nightout";
     private boolean seedDemo = true;
@@ -68,6 +69,14 @@ public class AppProperties {
 
     public void setMaxUploadCount(int maxUploadCount) {
         this.maxUploadCount = maxUploadCount;
+    }
+
+    public ImageOptimization getImageOptimization() {
+        return imageOptimization;
+    }
+
+    public void setImageOptimization(ImageOptimization imageOptimization) {
+        this.imageOptimization = imageOptimization;
     }
 
     public String getStorageProvider() {
@@ -204,6 +213,54 @@ public class AppProperties {
 
         public void setPathStyle(boolean pathStyle) {
             this.pathStyle = pathStyle;
+        }
+    }
+
+    public static class ImageOptimization {
+        private boolean enabled = true;
+        private int maxDimension = 1080;
+        private double jpegQuality = 0.82;
+        private boolean deleteOriginal = true;
+        private int batchSize = 10;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public int getMaxDimension() {
+            return maxDimension;
+        }
+
+        public void setMaxDimension(int maxDimension) {
+            this.maxDimension = maxDimension;
+        }
+
+        public double getJpegQuality() {
+            return jpegQuality;
+        }
+
+        public void setJpegQuality(double jpegQuality) {
+            this.jpegQuality = jpegQuality;
+        }
+
+        public boolean isDeleteOriginal() {
+            return deleteOriginal;
+        }
+
+        public void setDeleteOriginal(boolean deleteOriginal) {
+            this.deleteOriginal = deleteOriginal;
+        }
+
+        public int getBatchSize() {
+            return batchSize;
+        }
+
+        public void setBatchSize(int batchSize) {
+            this.batchSize = batchSize;
         }
     }
 }
