@@ -224,6 +224,11 @@ p {
     grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 }
 
+.area-club-grid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 245px));
+    justify-content: start;
+}
+
 .event-grid {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
@@ -250,20 +255,50 @@ p {
     min-height: 132px;
 }
 
-.club-card-image {
-    display: block;
+.club-card-media {
     width: calc(100% + 36px);
     max-width: none;
     aspect-ratio: 16 / 10;
-    object-fit: cover;
     margin: -18px -18px 10px;
     border-radius: 8px 8px 0 0;
     border-bottom: 1px solid var(--line);
+    overflow: hidden;
+    background: var(--panel-strong);
+}
+
+.club-card-image,
+.club-card-placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.club-card-image {
+    object-fit: cover;
+}
+
+.club-card-placeholder {
+    background:
+        linear-gradient(135deg, rgba(24, 169, 153, 0.28), rgba(255, 112, 104, 0.18)),
+        var(--panel-strong);
 }
 
 .club-grid .card-link h3 {
     width: 100%;
     text-align: center;
+}
+
+.club-image-admin {
+    display: grid;
+    gap: 6px;
+    font-weight: 700;
+}
+
+.club-image-admin .club-card-media {
+    width: 100%;
+    margin: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
 }
 
 .club-hero-image {
@@ -703,6 +738,10 @@ th {
     .date-card {
         width: 100%;
         min-height: 116px;
+    }
+
+    .area-club-grid {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .upload-bar {

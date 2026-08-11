@@ -23,14 +23,12 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -46,14 +44,16 @@ public class PhotoService {
     private final StorageService storageService;
     private final AppProperties properties;
     private final ImageOptimizationService imageOptimizationService;
+    private final ImageUploadValidator imageUploadValidator;
 
-    public PhotoService(PhotoRepository photoRepository, EventService eventService, EventPolicyService policyService, StorageService storageService, AppProperties properties, ImageOptimizationService imageOptimizationService) {
+    public PhotoService(PhotoRepository photoRepository, EventService eventService, EventPolicyService policyService, StorageService storageService, AppProperties properties, ImageOptimizationService imageOptimizationService, ImageUploadValidator imageUploadValidator) {
         this.photoRepository = photoRepository;
         this.eventService = eventService;
         this.policyService = policyService;
         this.storageService = storageService;
         this.properties = properties;
         this.imageOptimizationService = imageOptimizationService;
+        this.imageUploadValidator = imageUploadValidator;
     }
 
     @Transactional
@@ -180,24 +180,14 @@ public class PhotoService {
     }
 
     private Photo uploadOne(NightEvent event, MultipartFile multipartFile) {
-        if (multipartFile.getSize() > properties.getMaxUploadBytes()) {
-            throw new BusinessRuleException("Each image must be smaller than " + Math.max(1, properties.getMaxUploadBytes() / 1024 / 1024) + " MB.");
-        }
-        byte[] bytes;
-        try {
-            bytes = multipartFile.getBytes();
-        } catch (IOException ex) {
-            throw new BusinessRuleException("Could not read the uploaded image.");
-        }
-        ImageType imageType = detectImageType(bytes, multipartFile.getOriginalFilename(), multipartFile.getContentType());
-        String originalFilename = safeOriginalFilename(multipartFile.getOriginalFilename());
-        String objectFilename = UUID.randomUUID() + "." + imageType.extension();
+        ValidatedImage image = imageUploadValidator.validate(multipartFile, properties.getMaxUploadBytes());
+        String objectFilename = UUID.randomUUID() + "." + image.extension();
         String safeFilename = event.getClub().getSlug() + "-" + event.getEventDate() + "-" + objectFilename;
-        StorageFile stored = storageService.upload(bytes, objectFilename, imageType.mimeType(), storagePrefix(event));
+        StorageFile stored = storageService.upload(image.content(), objectFilename, image.mimeType(), storagePrefix(event));
 
         Photo photo = new Photo();
         photo.setEvent(event);
-        photo.setOriginalFilename(originalFilename);
+        photo.setOriginalFilename(image.originalFilename());
         photo.setSafeFilename(safeFilename);
         photo.setMimeType(stored.mimeType());
         photo.setFileSize(stored.sizeBytes());
@@ -242,70 +232,5 @@ public class PhotoService {
             clubPrefix = "clubs/" + event.getClub().getSlug();
         }
         return clubPrefix + "/" + event.getEventDate();
-    }
-
-    private static ImageType detectImageType(byte[] bytes, String filename, String contentType) {
-        String lowerName = filename == null ? "" : filename.toLowerCase(Locale.ROOT);
-        String lowerContentType = contentType == null ? "" : contentType.toLowerCase(Locale.ROOT);
-        if (lowerName.endsWith(".heic") || lowerName.endsWith(".heif") || lowerContentType.contains("heic") || lowerContentType.contains("heif")) {
-            throw new BusinessRuleException("HEIC/HEIF photos are not supported yet. Please upload JPEG, PNG, or WebP.");
-        }
-        if (bytes.length >= 3 && (bytes[0] & 0xff) == 0xff && (bytes[1] & 0xff) == 0xd8 && (bytes[2] & 0xff) == 0xff) {
-            return ImageType.JPEG;
-        }
-        if (bytes.length >= 8
-                && (bytes[0] & 0xff) == 0x89
-                && bytes[1] == 0x50
-                && bytes[2] == 0x4e
-                && bytes[3] == 0x47
-                && bytes[4] == 0x0d
-                && bytes[5] == 0x0a
-                && bytes[6] == 0x1a
-                && bytes[7] == 0x0a) {
-            return ImageType.PNG;
-        }
-        if (bytes.length >= 12
-                && bytes[0] == 'R'
-                && bytes[1] == 'I'
-                && bytes[2] == 'F'
-                && bytes[3] == 'F'
-                && bytes[8] == 'W'
-                && bytes[9] == 'E'
-                && bytes[10] == 'B'
-                && bytes[11] == 'P') {
-            return ImageType.WEBP;
-        }
-        throw new BusinessRuleException("Only JPEG, PNG, and WebP images can be uploaded.");
-    }
-
-    private static String safeOriginalFilename(String originalFilename) {
-        if (originalFilename == null || originalFilename.isBlank()) {
-            return "photo";
-        }
-        String normalized = originalFilename.replace('\\', '/');
-        int slashIndex = normalized.lastIndexOf('/');
-        return slashIndex >= 0 ? normalized.substring(slashIndex + 1) : normalized;
-    }
-
-    private enum ImageType {
-        JPEG("image/jpeg", "jpg"),
-        PNG("image/png", "png"),
-        WEBP("image/webp", "webp");
-
-        private final String mimeType;
-        private final String extension;
-
-        ImageType(String mimeType, String extension) {
-            this.mimeType = mimeType;
-            this.extension = extension;
-        }
-
-        String mimeType() {
-            return mimeType;
-        }
-
-        String extension() {
-            return extension;
-        }
     }
 }

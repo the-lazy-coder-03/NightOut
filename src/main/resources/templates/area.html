@@ -23,9 +23,13 @@
     <section class="section">
         <h2>Clubs</h2>
         <div class="empty" th:if="${#lists.isEmpty(clubs)}">No clubs are live in this area yet.</div>
-        <div class="grid club-grid" th:if="${!#lists.isEmpty(clubs)}">
+        <div class="grid club-grid area-club-grid" th:if="${!#lists.isEmpty(clubs)}">
             <a class="card card-link" th:each="club : ${clubs}" th:href="@{/clubs/{slug}(slug=${club.slug})}">
-                <img class="club-card-image" th:if="${club.logoUrl}" th:src="${club.logoUrl}" th:alt="${club.name}" loading="lazy">
+                <div class="club-card-media">
+                    <img class="club-card-image" th:if="${club.hasUploadedImage()}" th:src="@{/club-images/{id}(id=${club.id})}" th:alt="${club.name}" width="640" height="400" loading="lazy" decoding="async">
+                    <img class="club-card-image" th:if="${!club.hasUploadedImage() and club.logoUrl != null}" th:src="${club.logoUrl}" th:alt="${club.name}" width="640" height="400" loading="lazy" decoding="async">
+                    <span class="club-card-placeholder" th:if="${!club.hasUploadedImage() and club.logoUrl == null}"></span>
+                </div>
                 <h3 th:text="${club.name}">HALO</h3>
             </a>
         </div>

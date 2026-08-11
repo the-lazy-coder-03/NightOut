@@ -99,10 +99,36 @@ class PublicDateFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Cape Town")))
                 .andExpect(content().string(containsString("/clubs/halo")))
+                .andExpect(content().string(containsString("class=\"club-card-media\"")))
                 .andExpect(content().string(containsString("class=\"club-card-image\"")))
+                .andExpect(content().string(containsString("width=\"640\"")))
+                .andExpect(content().string(containsString("height=\"400\"")))
+                .andExpect(content().string(containsString("decoding=\"async\"")))
                 .andExpect(content().string(containsString(HALO_LOGO_URL)))
                 .andExpect(content().string(containsString("HALO")))
                 .andExpect(content().string(not(containsString("Modular"))));
+    }
+
+    @Test
+    void areaPageUsesUploadedClubImageBeforeLegacyLogoUrl() throws Exception {
+        halo.setImageStorageFileId("clubs/halo/club-image/halo.jpg");
+        halo.setImageMimeType("image/jpeg");
+        halo.setImageFileSize(123L);
+        halo.setImageUploadedAt(Instant.parse("2026-08-07T20:00:00Z"));
+        clubRepository.save(halo);
+
+        mockMvc.perform(get("/areas/cape-town"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/club-images/" + halo.getId())))
+                .andExpect(content().string(not(containsString(HALO_LOGO_URL))));
+    }
+
+    @Test
+    void areaPageShowsFixedPlaceholderWhenClubHasNoImage() throws Exception {
+        mockMvc.perform(get("/areas/claremont"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Modular")))
+                .andExpect(content().string(containsString("class=\"club-card-placeholder\"")));
     }
 
     @Test

@@ -47,7 +47,9 @@ public class DemoDataLoader implements CommandLineRunner {
             return;
         }
 
-        Club halo = clubService.create("HALO", "halo", "Cape Town", "Cape Town", "12 Loop Street", HALO_LOGO_URL, null, true);
+        Club halo = clubService.create("HALO", "halo", "Cape Town", "Cape Town", "12 Loop Street", null, null, true);
+        halo.setLogoUrl(HALO_LOGO_URL);
+        clubRepository.save(halo);
         Club modular = clubService.create("Modular", "modular", "Cape Town", "Claremont", "38 Harrington Street", null, null, true);
         clubService.create("Club Paradise", "club-paradise", "Cape Town", "Stellenbosch", "99 Bree Street", null, null, true);
 

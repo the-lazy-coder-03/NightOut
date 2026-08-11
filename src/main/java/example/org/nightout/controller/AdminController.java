@@ -2,6 +2,7 @@ package example.org.nightout.controller;
 
 import example.org.nightout.entity.Club;
 import example.org.nightout.entity.NightEvent;
+import example.org.nightout.exception.BusinessRuleException;
 import example.org.nightout.service.AdminQueryService;
 import example.org.nightout.service.ClubService;
 import example.org.nightout.service.EventService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -57,20 +59,29 @@ public class AdminController {
     @PostMapping("/admin/clubs")
     public String createClub(@RequestParam String name, @RequestParam(required = false) String slug, @RequestParam String city,
                              @RequestParam String area,
-                             @RequestParam(required = false) String address, @RequestParam(required = false) String logoUrl,
+                             @RequestParam(required = false) String address, @RequestParam(required = false) MultipartFile clubImage,
                              @RequestParam(required = false) String storageFolderId, RedirectAttributes redirectAttributes) {
-        clubService.create(name, slug, city, area, address, logoUrl, storageFolderId, true);
-        redirectAttributes.addFlashAttribute("successMessage", "Club created.");
+        try {
+            clubService.create(name, slug, city, area, address, clubImage, storageFolderId, true);
+            redirectAttributes.addFlashAttribute("successMessage", "Club created.");
+        } catch (BusinessRuleException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
         return "redirect:/admin";
     }
 
     @PostMapping("/admin/clubs/{clubId}")
     public String updateClub(@PathVariable Long clubId, @RequestParam String name, @RequestParam(required = false) String slug,
                              @RequestParam String city, @RequestParam String area, @RequestParam(required = false) String address,
-                             @RequestParam(required = false) String logoUrl, @RequestParam(required = false) String storageFolderId,
+                             @RequestParam(required = false) MultipartFile clubImage, @RequestParam(required = false) String storageFolderId,
                              @RequestParam(defaultValue = "false") boolean active, RedirectAttributes redirectAttributes) {
-        clubService.update(clubId, name, slug, city, area, address, logoUrl, storageFolderId, active);
-        redirectAttributes.addFlashAttribute("successMessage", "Club updated.");
+        try {
+            clubService.update(clubId, name, slug, city, area, address, clubImage, storageFolderId, active);
+            redirectAttributes.addFlashAttribute("successMessage", "Club updated.");
+        } catch (BusinessRuleException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/admin/clubs/" + clubId + "/edit";
+        }
         return "redirect:/admin";
     }
 

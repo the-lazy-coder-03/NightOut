@@ -41,6 +41,18 @@ public class Club {
     @Column(name = "storage_folder_id")
     private String storageFolderId;
 
+    @Column(name = "image_storage_file_id")
+    private String imageStorageFileId;
+
+    @Column(name = "image_mime_type")
+    private String imageMimeType;
+
+    @Column(name = "image_file_size")
+    private Long imageFileSize;
+
+    @Column(name = "image_uploaded_at")
+    private Instant imageUploadedAt;
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -108,6 +120,42 @@ public class Club {
 
     public void setStorageFolderId(String storageFolderId) {
         this.storageFolderId = storageFolderId;
+    }
+
+    public String getImageStorageFileId() {
+        return imageStorageFileId;
+    }
+
+    public void setImageStorageFileId(String imageStorageFileId) {
+        this.imageStorageFileId = imageStorageFileId;
+    }
+
+    public String getImageMimeType() {
+        return imageMimeType;
+    }
+
+    public void setImageMimeType(String imageMimeType) {
+        this.imageMimeType = imageMimeType;
+    }
+
+    public Long getImageFileSize() {
+        return imageFileSize;
+    }
+
+    public void setImageFileSize(Long imageFileSize) {
+        this.imageFileSize = imageFileSize;
+    }
+
+    public Instant getImageUploadedAt() {
+        return imageUploadedAt;
+    }
+
+    public void setImageUploadedAt(Instant imageUploadedAt) {
+        this.imageUploadedAt = imageUploadedAt;
+    }
+
+    public boolean hasUploadedImage() {
+        return imageStorageFileId != null && !imageStorageFileId.isBlank();
     }
 
     public boolean isActive() {
