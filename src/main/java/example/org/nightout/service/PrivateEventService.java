@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,6 +30,7 @@ public class PrivateEventService {
 
     private static final int JOIN_CODE_BOUND = 100_000;
     private static final int MAX_JOIN_CODE_ATTEMPTS = 25;
+    private static final int MAX_INVITE_TOKEN_ATTEMPTS = 25;
     private static final LocalTime DEFAULT_START_TIME = LocalTime.MIDNIGHT;
     private static final LocalTime DEFAULT_END_TIME = LocalTime.of(23, 59);
 
@@ -104,6 +106,7 @@ public class PrivateEventService {
         event.setEndTime(DEFAULT_END_TIME);
         event.setLocation(blankToNull(location));
         event.setJoinCode(generateJoinCode());
+        event.setInviteToken(generateInviteToken());
         event.setPasswordHash(passwordEncoder.encode(password));
         event.setCreatedAt(Instant.now(clock));
 
@@ -123,6 +126,20 @@ public class PrivateEventService {
         }
         AppUser user = userManagementService.requireUser(principal.getId());
         if (!membershipRepository.existsByPrivateEventAndUser(event, user)) {
+            addMember(event, user);
+        }
+        return event;
+    }
+
+    @Transactional
+    public PrivateEvent joinByInviteToken(AuthenticatedUser principal, String inviteToken) {
+        PrivateEvent event = privateEventRepository.findByInviteToken(requireText(inviteToken, "Invite link is not valid."))
+                .orElseThrow(() -> new ResourceNotFoundException("Private event not found."));
+        if (expired(event) || event.isCancelled()) {
+            throw new BusinessRuleException("This private event has expired.");
+        }
+        AppUser user = userManagementService.requireUser(principal.getId());
+        if (!isParticipant(event, user)) {
             addMember(event, user);
         }
         return event;
@@ -166,6 +183,18 @@ public class PrivateEventService {
             }
         }
         throw new BusinessRuleException("Could not generate a unique private event code. Try again.");
+    }
+
+    private String generateInviteToken() {
+        for (int attempt = 0; attempt < MAX_INVITE_TOKEN_ATTEMPTS; attempt++) {
+            byte[] randomBytes = new byte[24];
+            secureRandom.nextBytes(randomBytes);
+            String token = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+            if (!privateEventRepository.existsByInviteToken(token)) {
+                return token;
+            }
+        }
+        throw new BusinessRuleException("Could not generate a unique private event invite link. Try again.");
     }
 
     private static String normalizeJoinCode(String joinCode) {

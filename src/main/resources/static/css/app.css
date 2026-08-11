@@ -461,6 +461,16 @@ button[disabled] {
     color: var(--coral);
 }
 
+.invite-share {
+    display: grid;
+    gap: 8px;
+}
+
+.invite-share a {
+    color: var(--teal-dark);
+    overflow-wrap: anywhere;
+}
+
 .gallery {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));

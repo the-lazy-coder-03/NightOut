@@ -47,6 +47,9 @@ public class PrivateEvent {
     @Column(name = "join_code", nullable = false, unique = true)
     private String joinCode;
 
+    @Column(name = "invite_token", unique = true, length = 80)
+    private String inviteToken;
+
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
@@ -117,6 +120,14 @@ public class PrivateEvent {
 
     public void setJoinCode(String joinCode) {
         this.joinCode = joinCode;
+    }
+
+    public String getInviteToken() {
+        return inviteToken;
+    }
+
+    public void setInviteToken(String inviteToken) {
+        this.inviteToken = inviteToken;
     }
 
     public String getPasswordHash() {

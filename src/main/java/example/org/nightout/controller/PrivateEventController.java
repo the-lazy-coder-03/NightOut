@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Controller
 @RequestMapping("/private-events")
@@ -54,11 +55,28 @@ public class PrivateEventController {
                          RedirectAttributes redirectAttributes) {
         try {
             PrivateEvent event = privateEventService.create(user, eventName, location, password);
-            redirectAttributes.addFlashAttribute("successMessage", "Private event created. Share code " + event.getJoinCode() + " and the password with your guests.");
+            redirectAttributes.addFlashAttribute("successMessage", "Private event created.");
+            redirectAttributes.addFlashAttribute("successInviteLink", inviteLink(event));
+            redirectAttributes.addFlashAttribute("successInviteCode", event.getJoinCode());
+            redirectAttributes.addFlashAttribute("successInvitePassword", password);
             return "redirect:/private-events/" + event.getJoinCode();
         } catch (BusinessRuleException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             return "redirect:/private-events/create";
+        }
+    }
+
+    @GetMapping("/invite/{inviteToken}")
+    public String invite(@AuthenticationPrincipal AuthenticatedUser user,
+                         @PathVariable String inviteToken,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            PrivateEvent event = privateEventService.joinByInviteToken(user, inviteToken);
+            redirectAttributes.addFlashAttribute("successMessage", "Private event added to your account.");
+            return "redirect:/private-events/" + event.getJoinCode();
+        } catch (BusinessRuleException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/private-events";
         }
     }
 
@@ -133,6 +151,13 @@ public class PrivateEventController {
 
     private static String eventUrl(String joinCode) {
         return "/private-events/" + joinCode;
+    }
+
+    private static String inviteLink(PrivateEvent event) {
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/private-events/invite/{token}")
+                .buildAndExpand(event.getInviteToken())
+                .toUriString();
     }
 
     private record UploadBatchResponse(boolean success, int count, String message, String redirectUrl) {

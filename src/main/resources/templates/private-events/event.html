@@ -18,6 +18,12 @@
 </header>
 <main class="shell">
     <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Saved.</div>
+    <div th:if="${successInviteLink}" class="flash success invite-share">
+        <strong>Share invite link</strong>
+        <a th:href="${successInviteLink}" th:text="${successInviteLink}">https://primepick.co.za/private-events/invite/token</a>
+        <span th:text="|Event code: ${successInviteCode}|">Event code: 12345</span>
+        <span th:text="|Password: ${successInvitePassword}|">Password: example-password</span>
+    </div>
     <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Upload failed.</div>
 
     <section class="hero">

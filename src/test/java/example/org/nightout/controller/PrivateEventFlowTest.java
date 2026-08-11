@@ -138,10 +138,14 @@ class PrivateEventFlowTest {
                         .param("password", "share-this-password"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/private-events/*"))
-                .andExpect(flash().attributeExists("successMessage"));
+                .andExpect(flash().attribute("successMessage", "Private event created."))
+                .andExpect(flash().attributeExists("successInviteLink"))
+                .andExpect(flash().attributeExists("successInviteCode"))
+                .andExpect(flash().attribute("successInvitePassword", "share-this-password"));
 
         PrivateEvent event = privateEventRepository.findAll().getFirst();
         assertThat(event.getJoinCode()).matches("\\d{5}");
+        assertThat(event.getInviteToken()).isNotBlank();
         assertThat(event.getEventDate()).isEqualTo(LocalDate.of(2026, 8, 12));
         assertThat(event.getStartTime()).isEqualTo(LocalTime.MIDNIGHT);
         assertThat(event.getEndTime()).isEqualTo(LocalTime.of(23, 59));
@@ -153,6 +157,30 @@ class PrivateEventFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Birthday Table")))
                 .andExpect(content().string(containsString("Code " + event.getJoinCode())));
+    }
+
+    @Test
+    void inviteLinkBindsEventToLoggedInUserWithoutEventPassword() throws Exception {
+        PrivateEvent event = privateEventService.create(
+                principal(creator, "ROLE_USER"),
+                "Invite Party",
+                "Cape Town",
+                "correct-password"
+        );
+
+        mockMvc.perform(get("/private-events/invite/{token}", event.getInviteToken())
+                        .with(auth(guest, "ROLE_USER")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/private-events/" + event.getJoinCode()))
+                .andExpect(flash().attribute("successMessage", "Private event added to your account."));
+
+        assertThat(membershipRepository.existsByPrivateEventAndUser(event, guest)).isTrue();
+
+        mockMvc.perform(get("/private-events/{code}", event.getJoinCode())
+                        .with(auth(guest, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Invite Party")))
+                .andExpect(content().string(containsString("Upload Photos")));
     }
 
     @Test

@@ -14,8 +14,13 @@ import java.util.Optional;
 public interface PrivateEventRepository extends JpaRepository<PrivateEvent, Long> {
     boolean existsByJoinCode(String joinCode);
 
+    boolean existsByInviteToken(String inviteToken);
+
     @EntityGraph(attributePaths = "creator")
     Optional<PrivateEvent> findByJoinCode(String joinCode);
+
+    @EntityGraph(attributePaths = "creator")
+    Optional<PrivateEvent> findByInviteToken(String inviteToken);
 
     @EntityGraph(attributePaths = "creator")
     @Query("""
