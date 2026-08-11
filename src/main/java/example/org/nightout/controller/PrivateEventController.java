@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Controller
 @RequestMapping("/private-events")
@@ -153,8 +153,8 @@ public class PrivateEventController {
         return "/private-events/" + joinCode;
     }
 
-    private static String inviteLink(PrivateEvent event) {
-        return ServletUriComponentsBuilder.fromCurrentContextPath()
+    private String inviteLink(PrivateEvent event) {
+        return UriComponentsBuilder.fromUriString(properties.getBaseUrl())
                 .path("/private-events/invite/{token}")
                 .buildAndExpand(event.getInviteToken())
                 .toUriString();

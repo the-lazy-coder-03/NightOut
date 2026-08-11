@@ -25,6 +25,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
@@ -130,7 +131,7 @@ class PrivateEventFlowTest {
 
     @Test
     void creatorCreatesPrivateEventWithCodeMembershipAndDefaultTiming() throws Exception {
-        mockMvc.perform(post("/private-events")
+        MvcResult result = mockMvc.perform(post("/private-events")
                         .with(auth(creator, "ROLE_USER"))
                         .with(csrf())
                         .param("eventName", "Birthday Table")
@@ -141,11 +142,14 @@ class PrivateEventFlowTest {
                 .andExpect(flash().attribute("successMessage", "Private event created."))
                 .andExpect(flash().attributeExists("successInviteLink"))
                 .andExpect(flash().attributeExists("successInviteCode"))
-                .andExpect(flash().attribute("successInvitePassword", "share-this-password"));
+                .andExpect(flash().attribute("successInvitePassword", "share-this-password"))
+                .andReturn();
 
         PrivateEvent event = privateEventRepository.findAll().getFirst();
         assertThat(event.getJoinCode()).matches("\\d{5}");
         assertThat(event.getInviteToken()).isNotBlank();
+        assertThat(result.getFlashMap().get("successInviteLink"))
+                .isEqualTo("http://localhost:8090/private-events/invite/" + event.getInviteToken());
         assertThat(event.getEventDate()).isEqualTo(LocalDate.of(2026, 8, 12));
         assertThat(event.getStartTime()).isEqualTo(LocalTime.MIDNIGHT);
         assertThat(event.getEndTime()).isEqualTo(LocalTime.of(23, 59));
@@ -157,6 +161,31 @@ class PrivateEventFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Birthday Table")))
                 .andExpect(content().string(containsString("Code " + event.getJoinCode())));
+    }
+
+    @Test
+    void createdEventInviteDetailsRenderWithoutMiddleBox() throws Exception {
+        PrivateEvent event = privateEventService.create(
+                principal(creator, "ROLE_USER"),
+                "Invite Display",
+                "Cape Town",
+                "correct-password"
+        );
+
+        mockMvc.perform(get("/private-events/{code}", event.getJoinCode())
+                        .with(auth(creator, "ROLE_USER"))
+                        .flashAttr("successMessage", "Private event created.")
+                        .flashAttr("successInviteLink", "http://localhost:8090/private-events/invite/" + event.getInviteToken())
+                        .flashAttr("successInviteCode", event.getJoinCode())
+                        .flashAttr("successInvitePassword", "correct-password"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"private-share\"")))
+                .andExpect(content().string(containsString("http://localhost:8090/private-events/invite/" + event.getInviteToken())))
+                .andExpect(content().string(containsString("Event code: " + event.getJoinCode())))
+                .andExpect(content().string(containsString("Password: correct-password")))
+                .andExpect(content().string(not(containsString("class=\"flash success invite-share\""))))
+                .andExpect(content().string(not(containsString("class=\"card form-grid two private-event-details\""))))
+                .andExpect(content().string(not(containsString("Private event created."))));
     }
 
     @Test

@@ -461,12 +461,18 @@ button[disabled] {
     color: var(--coral);
 }
 
-.invite-share {
+.private-share {
     display: grid;
     gap: 8px;
+    margin: 6px 0 22px;
+    color: var(--muted);
 }
 
-.invite-share a {
+.private-share strong {
+    color: var(--ink);
+}
+
+.private-share a {
     color: var(--teal-dark);
     overflow-wrap: anywhere;
 }

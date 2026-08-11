@@ -17,25 +17,18 @@
     </nav>
 </header>
 <main class="shell">
-    <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Saved.</div>
-    <div th:if="${successInviteLink}" class="flash success invite-share">
+    <div th:if="${successMessage != null && successInviteLink == null}" class="flash success" th:text="${successMessage}">Saved.</div>
+    <section th:if="${successInviteLink}" class="private-share" aria-label="Private event invite">
         <strong>Share invite link</strong>
         <a th:href="${successInviteLink}" th:text="${successInviteLink}">https://primepick.co.za/private-events/invite/token</a>
         <span th:text="|Event code: ${successInviteCode}|">Event code: 12345</span>
         <span th:text="|Password: ${successInvitePassword}|">Password: example-password</span>
-    </div>
+    </section>
     <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Upload failed.</div>
 
     <section class="hero">
         <h1 th:text="${eventView.event.eventName}">Private Event</h1>
         <p th:if="${eventView.event.location != null}" th:text="${eventView.event.location}">Location</p>
-    </section>
-
-    <section class="section">
-        <div class="card form-grid two private-event-details">
-            <p><strong>Code</strong><br><span th:text="${eventView.event.joinCode}">12345</span></p>
-            <p><strong>Expires</strong><br><span th:text="${#temporals.format(eventView.expiresOn, 'yyyy-MM-dd')}">2026-08-15</span></p>
-        </div>
     </section>
 
     <section class="section">
