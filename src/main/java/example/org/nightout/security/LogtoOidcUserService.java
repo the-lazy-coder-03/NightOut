@@ -27,7 +27,9 @@ public class LogtoOidcUserService implements OAuth2UserService<OidcUserRequest, 
 
     private static final String ROLE_CLAIM = "roles";
     private static final String LOGTO_SUPER_ADMIN = "super_admin";
+    private static final String LOGTO_SUPERADMIN = "superadmin";
     private static final String LOGTO_CLUB_OWNER = "club_owner";
+    private static final String LOGTO_CLUBOWNER = "clubowner";
     private static final String LOGTO_USER = "user";
 
     private final OidcUserService delegate = new OidcUserService();
@@ -71,9 +73,9 @@ public class LogtoOidcUserService implements OAuth2UserService<OidcUserRequest, 
         Set<String> mappedRoles = new LinkedHashSet<>();
         mappedRoles.add("ROLE_USER");
         for (String role : rolesClaim(oidcUser)) {
-            switch (role) {
-                case LOGTO_SUPER_ADMIN -> mappedRoles.add("ROLE_ADMIN");
-                case LOGTO_CLUB_OWNER -> mappedRoles.add("ROLE_CLUB_OWNER");
+            switch (normalizeRole(role)) {
+                case LOGTO_SUPER_ADMIN, LOGTO_SUPERADMIN -> mappedRoles.add("ROLE_ADMIN");
+                case LOGTO_CLUB_OWNER, LOGTO_CLUBOWNER -> mappedRoles.add("ROLE_CLUB_OWNER");
                 case LOGTO_USER -> mappedRoles.add("ROLE_USER");
                 default -> {
                     // Ignore unrelated Logto roles; NightOut only recognizes the fixed RBAC model.
@@ -95,6 +97,13 @@ public class LogtoOidcUserService implements OAuth2UserService<OidcUserRequest, 
             return roles;
         }
         return List.of();
+    }
+
+    private static String normalizeRole(String role) {
+        return role.trim()
+                .toLowerCase(Locale.ROOT)
+                .replace('-', '_')
+                .replace(' ', '_');
     }
 
     private static UserRole localRoleFor(Collection<? extends GrantedAuthority> authorities) {

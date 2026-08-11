@@ -129,6 +129,14 @@ class LogtoAuthenticationFlowTest {
         assertThat(linked.getAuthorities()).extracting("authority").contains("ROLE_ADMIN", "ROLE_USER");
     }
 
+    @Test
+    void superadminAliasMapsToAdminAuthority() {
+        AuthenticatedUser linked = logtoOidcUserService.link(oidc("logto-admin-alias", "admin@example.com", List.of("superadmin"), "Admin"));
+
+        assertThat(linked.getRole()).isEqualTo(UserRole.ADMIN);
+        assertThat(linked.getAuthorities()).extracting("authority").contains("ROLE_ADMIN", "ROLE_USER");
+    }
+
     private static OidcUser oidc(String subject, String email, List<String> roles, String name) {
         OidcUser oidcUser = mock(OidcUser.class);
         when(oidcUser.getSubject()).thenReturn(subject);
