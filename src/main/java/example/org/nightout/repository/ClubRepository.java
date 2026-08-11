@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface ClubRepository extends JpaRepository<Club, Long> {
     List<Club> findByActiveTrueOrderByNameAsc();
 
+    List<Club> findByActiveTrueAndAreaOrderByNameAsc(String area);
+
     Optional<Club> findBySlugAndActiveTrue(String slug);
 
     Optional<Club> findBySlug(String slug);

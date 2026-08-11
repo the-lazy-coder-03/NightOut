@@ -6,30 +6,21 @@
     <title>NightOut</title>
     <link rel="stylesheet" href="/css/app.css">
 </head>
-<body>
-<header class="topbar">
-    <a class="brand" href="/">NightOut</a>
-    <nav class="nav">
-        <a href="/login">Club login</a>
-    </nav>
+<body class="home-page">
+<header class="home-nav">
+    <a class="home-brand" href="/">NightOut</a>
+    <a class="home-login" href="/login">Club login</a>
 </header>
-<main class="shell">
-    <section class="hero">
-        <span class="eyebrow">Cape Town nights</span>
-        <h1>Find your night</h1>
-        <p>Choose a venue, choose the night, then view or upload the photos from that event.</p>
-        <div class="photo-strip" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-    </section>
-
-    <section class="section">
-        <h2>Choose a location</h2>
-        <div class="grid club-grid" style="margin-top: 14px">
-            <a class="card card-link" th:each="club : ${clubs}" th:href="@{/clubs/{slug}(slug=${club.slug})}">
-                <span class="eyebrow" th:text="${club.city}">Cape Town</span>
-                <h3 th:text="${club.name}">Halo</h3>
-                <span class="meta" th:text="${club.address}">12 Loop Street</span>
+<main class="home-shell">
+    <section class="home-hero">
+        <span class="home-kicker">NightOut South Africa</span>
+        <h1>Find the nightlife photos from your area, all in one place</h1>
+        <nav class="area-list" aria-label="Areas">
+            <a class="area-link" th:each="area : ${areas}" th:href="@{/areas/{slug}(slug=${area.slug})}">
+                <span th:text="${area.displayName}">Cape Town</span>
+                <span aria-hidden="true">&rarr;</span>
             </a>
-        </div>
+        </nav>
     </section>
 </main>
 </body>

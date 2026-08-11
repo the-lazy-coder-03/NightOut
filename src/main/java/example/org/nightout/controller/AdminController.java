@@ -50,24 +50,26 @@ public class AdminController {
         model.addAttribute("events", adminQueryService.allEvents());
         model.addAttribute("photos", adminQueryService.allPhotos());
         model.addAttribute("owners", userManagementService.owners());
+        model.addAttribute("areas", clubService.areas());
         return "admin/dashboard";
     }
 
     @PostMapping("/admin/clubs")
     public String createClub(@RequestParam String name, @RequestParam(required = false) String slug, @RequestParam String city,
+                             @RequestParam String area,
                              @RequestParam(required = false) String address, @RequestParam(required = false) String logoUrl,
                              @RequestParam(required = false) String storageFolderId, RedirectAttributes redirectAttributes) {
-        clubService.create(name, slug, city, address, logoUrl, storageFolderId, true);
+        clubService.create(name, slug, city, area, address, logoUrl, storageFolderId, true);
         redirectAttributes.addFlashAttribute("successMessage", "Club created.");
         return "redirect:/admin";
     }
 
     @PostMapping("/admin/clubs/{clubId}")
     public String updateClub(@PathVariable Long clubId, @RequestParam String name, @RequestParam(required = false) String slug,
-                             @RequestParam String city, @RequestParam(required = false) String address,
+                             @RequestParam String city, @RequestParam String area, @RequestParam(required = false) String address,
                              @RequestParam(required = false) String logoUrl, @RequestParam(required = false) String storageFolderId,
                              @RequestParam(defaultValue = "false") boolean active, RedirectAttributes redirectAttributes) {
-        clubService.update(clubId, name, slug, city, address, logoUrl, storageFolderId, active);
+        clubService.update(clubId, name, slug, city, area, address, logoUrl, storageFolderId, active);
         redirectAttributes.addFlashAttribute("successMessage", "Club updated.");
         return "redirect:/admin";
     }
@@ -143,6 +145,7 @@ public class AdminController {
     @GetMapping("/admin/clubs/{clubId}/edit")
     public String editClub(@PathVariable Long clubId, Model model) {
         model.addAttribute("club", clubService.requireById(clubId));
+        model.addAttribute("areas", clubService.areas());
         return "admin/club-edit";
     }
 }

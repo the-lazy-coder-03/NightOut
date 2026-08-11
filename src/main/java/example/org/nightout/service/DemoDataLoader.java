@@ -45,9 +45,9 @@ public class DemoDataLoader implements CommandLineRunner {
             return;
         }
 
-        Club halo = clubService.create("Halo", "halo", "Cape Town", "12 Loop Street", null, null, true);
-        Club modular = clubService.create("Modular", "modular", "Cape Town", "38 Harrington Street", null, null, true);
-        clubService.create("Club Paradise", "club-paradise", "Cape Town", "99 Bree Street", null, null, true);
+        Club halo = clubService.create("Halo", "halo", "Cape Town", "Cape Town", "12 Loop Street", null, null, true);
+        Club modular = clubService.create("Modular", "modular", "Cape Town", "Claremont", "38 Harrington Street", null, null, true);
+        clubService.create("Club Paradise", "club-paradise", "Cape Town", "Stellenbosch", "99 Bree Street", null, null, true);
 
         LocalDate today = LocalDate.now(clock);
         for (Club club : List.of(halo, modular)) {

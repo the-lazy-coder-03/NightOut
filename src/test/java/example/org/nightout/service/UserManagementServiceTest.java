@@ -66,6 +66,7 @@ class UserManagementServiceTest {
         club.setName(name);
         club.setSlug(slug);
         club.setCity("Cape Town");
+        club.setArea("Cape Town");
         club.setActive(true);
         return club;
     }

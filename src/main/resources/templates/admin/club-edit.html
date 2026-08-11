@@ -19,6 +19,11 @@
         <label>Name <input name="name" th:value="${club.name}" required></label>
         <label>Slug <input name="slug" th:value="${club.slug}" required></label>
         <label>City <input name="city" th:value="${club.city}" required></label>
+        <label>Area
+            <select name="area" required>
+                <option th:each="area : ${areas}" th:value="${area.displayName}" th:text="${area.displayName}" th:selected="${area.displayName == club.area}">Cape Town</option>
+            </select>
+        </label>
         <label>Address <input name="address" th:value="${club.address}"></label>
         <label>Logo URL <input name="logoUrl" th:value="${club.logoUrl}"></label>
         <label>Storage prefix <input name="storageFolderId" th:value="${club.storageFolderId}"></label>

@@ -4,6 +4,7 @@ import example.org.nightout.dto.EventView;
 import example.org.nightout.entity.Club;
 import example.org.nightout.entity.NightEvent;
 import example.org.nightout.exception.BusinessRuleException;
+import example.org.nightout.model.Area;
 import example.org.nightout.service.ClubService;
 import example.org.nightout.service.EventService;
 import example.org.nightout.service.NightlifeDateService;
@@ -39,8 +40,16 @@ public class PublicController {
 
     @GetMapping("/")
     public String home(Model model) {
-        model.addAttribute("clubs", clubService.activeClubs());
+        model.addAttribute("areas", clubService.areas());
         return "home";
+    }
+
+    @GetMapping("/areas/{areaSlug}")
+    public String area(@PathVariable String areaSlug, Model model) {
+        Area area = clubService.requireAreaBySlug(areaSlug);
+        model.addAttribute("area", area);
+        model.addAttribute("clubs", clubService.activeClubsForArea(area));
+        return "area";
     }
 
     @GetMapping("/clubs/{slug}")

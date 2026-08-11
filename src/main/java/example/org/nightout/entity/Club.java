@@ -30,6 +30,9 @@ public class Club {
     @Column(nullable = false)
     private String city;
 
+    @Column(nullable = false)
+    private String area;
+
     private String address;
 
     @Column(name = "logo_url")
@@ -73,6 +76,14 @@ public class Club {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public String getArea() {
+        return area;
+    }
+
+    public void setArea(String area) {
+        this.area = area;
     }
 
     public String getAddress() {

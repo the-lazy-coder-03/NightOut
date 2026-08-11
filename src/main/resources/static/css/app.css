@@ -31,6 +31,87 @@ a {
     color: inherit;
 }
 
+.home-page {
+    background: #080618;
+    color: #f7f4ff;
+}
+
+.home-page a {
+    text-decoration: none;
+}
+
+.home-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 72px;
+    padding: 18px clamp(18px, 4vw, 54px);
+}
+
+.home-brand {
+    color: #f7f4ff;
+    font-weight: 800;
+}
+
+.home-login {
+    color: rgba(247, 244, 255, 0.68);
+    font-weight: 700;
+}
+
+.home-shell {
+    min-height: calc(100vh - 72px);
+    display: grid;
+    align-items: center;
+    padding: 36px clamp(18px, 4vw, 54px) 96px;
+}
+
+.home-hero {
+    width: min(980px, 100%);
+    display: grid;
+    gap: 24px;
+}
+
+.home-kicker {
+    color: #f7f4ff;
+    font-weight: 800;
+    font-size: 1rem;
+}
+
+.home-hero h1 {
+    max-width: 920px;
+    color: #ffffff;
+    font-size: 3.2rem;
+    line-height: 1.18;
+    font-weight: 800;
+}
+
+.area-list {
+    display: grid;
+    gap: 4px;
+    width: fit-content;
+    margin-top: 18px;
+}
+
+.area-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 24px;
+    width: fit-content;
+    color: rgba(247, 244, 255, 0.54);
+    font-size: 3rem;
+    line-height: 1.18;
+    font-weight: 800;
+    transition: color 160ms ease, transform 160ms ease;
+}
+
+.area-link:hover,
+.area-link:focus-visible {
+    color: #ffffff;
+    transform: translateX(4px);
+    outline: none;
+}
+
 .topbar {
     display: flex;
     align-items: center;
@@ -240,6 +321,10 @@ button[disabled] {
 
 .section {
     margin-top: 34px;
+}
+
+.section .club-grid {
+    margin-top: 14px;
 }
 
 .flash {
@@ -521,6 +606,29 @@ th {
 }
 
 @media (max-width: 640px) {
+    .home-nav {
+        min-height: 64px;
+    }
+
+    .home-shell {
+        min-height: calc(100vh - 64px);
+        align-items: end;
+        padding-bottom: 64px;
+    }
+
+    .home-hero {
+        gap: 18px;
+    }
+
+    .home-hero h1 {
+        font-size: 2.25rem;
+    }
+
+    .area-link {
+        gap: 16px;
+        font-size: 2.2rem;
+    }
+
     .topbar {
         align-items: flex-start;
         flex-direction: column;
@@ -553,5 +661,15 @@ th {
 
     .upload-choice-actions {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 900px) {
+    .home-hero h1 {
+        font-size: 4.2rem;
+    }
+
+    .area-link {
+        font-size: 3.4rem;
     }
 }

@@ -87,10 +87,11 @@ class SchemaVersionFlywayMigrationStrategyTest {
     private void insertClub(Flyway flyway, String name, String slug) throws SQLException {
         try (Connection connection = dataSource(flyway).getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "INSERT INTO clubs (name, slug, city) VALUES (?, ?, ?)")) {
+                     "INSERT INTO clubs (name, slug, city, area) VALUES (?, ?, ?, ?)")) {
             statement.setString(1, name);
             statement.setString(2, slug);
             statement.setString(3, "Cape Town");
+            statement.setString(4, "Cape Town");
             statement.executeUpdate();
         }
     }

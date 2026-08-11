@@ -66,12 +66,41 @@ class PublicDateFlowTest {
         eventRepository.deleteAll();
         clubRepository.deleteAll();
 
-        halo = saveClub("Halo", "halo");
-        modular = saveClub("Modular", "modular");
+        halo = saveClub("Halo", "halo", "Cape Town");
+        modular = saveClub("Modular", "modular", "Claremont");
         haloFriday = saveEvent(halo, "Friday Night", LocalDate.of(2026, 8, 7));
         modularFriday = saveEvent(modular, "Other Friday", LocalDate.of(2026, 8, 7));
         savePhoto(haloFriday, "halo-friday.jpg", PhotoStatus.APPROVED);
         savePhoto(modularFriday, "modular-friday.jpg", PhotoStatus.APPROVED);
+    }
+
+    @Test
+    void homePageShowsFixedAreaLinksInsteadOfClubCards() throws Exception {
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("NightOut South Africa")))
+                .andExpect(content().string(containsString("/areas/cape-town")))
+                .andExpect(content().string(containsString("/areas/claremont")))
+                .andExpect(content().string(containsString("/areas/stellenbosch")))
+                .andExpect(content().string(not(containsString("/clubs/halo"))))
+                .andExpect(content().string(not(containsString("Friday Night"))));
+    }
+
+    @Test
+    void areaPageShowsOnlyClubsForSelectedArea() throws Exception {
+        mockMvc.perform(get("/areas/cape-town"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Cape Town")))
+                .andExpect(content().string(containsString("/clubs/halo")))
+                .andExpect(content().string(containsString("Halo")))
+                .andExpect(content().string(not(containsString("Modular"))));
+    }
+
+    @Test
+    void unknownAreaReturnsNotFound() throws Exception {
+        mockMvc.perform(get("/areas/johannesburg"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("Area not found.")));
     }
 
     @Test
@@ -213,11 +242,12 @@ class PublicDateFlowTest {
                 .andExpect(flash().attribute("errorMessage", "Choose at least one image to upload."));
     }
 
-    private Club saveClub(String name, String slug) {
+    private Club saveClub(String name, String slug, String area) {
         Club club = new Club();
         club.setName(name);
         club.setSlug(slug);
         club.setCity("Cape Town");
+        club.setArea(area);
         club.setActive(true);
         return clubRepository.save(club);
     }
