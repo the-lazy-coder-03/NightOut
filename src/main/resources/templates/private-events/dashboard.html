@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Private Events | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">NightOut</a>
+    <nav class="nav">
+        <a href="/dashboard">Dashboard</a>
+        <form method="post" th:action="@{/logout}">
+            <button type="submit">Log out</button>
+        </form>
+    </nav>
+</header>
+<main class="shell">
+    <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Saved.</div>
+    <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Could not save.</div>
+
+    <section class="hero">
+        <span class="eyebrow">Private events</span>
+        <h1>Create or join a private NightOut event</h1>
+    </section>
+
+    <section class="section">
+        <h2>Create private event</h2>
+        <form class="card form-grid three" method="post" th:action="@{/private-events}">
+            <label>Event name <input name="eventName" required></label>
+            <label>Date <input name="eventDate" type="date" required></label>
+            <label>Start <input name="startTime" type="time" value="21:00" required></label>
+            <label>End <input name="endTime" type="time" value="03:00" required></label>
+            <label>Location <input name="location"></label>
+            <label>Password <input name="password" type="password" minlength="8" autocomplete="new-password" required></label>
+            <button class="button" type="submit">Create Event</button>
+        </form>
+    </section>
+
+    <section class="section">
+        <h2>Join private event</h2>
+        <form class="card form-grid two" method="post" th:action="@{/private-events/join}">
+            <label>Code <input name="joinCode" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
+            <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+            <button class="button" type="submit">Join Event</button>
+        </form>
+    </section>
+
+    <section class="section">
+        <h2>Your private events</h2>
+        <div th:if="${#lists.isEmpty(events)}" class="empty">No active private events yet.</div>
+        <div class="grid club-grid" th:if="${!#lists.isEmpty(events)}">
+            <a class="card card-link" th:each="item : ${events}" th:href="@{/private-events/{code}(code=${item.event.joinCode})}">
+                <span class="eyebrow" th:text="${#temporals.format(item.event.eventDate, 'yyyy-MM-dd')}">2026-08-08</span>
+                <h3 th:text="${item.event.eventName}">Birthday</h3>
+                <span class="meta" th:text="|Code ${item.event.joinCode}|">Code 12345678</span>
+            </a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Join Private Event | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/private-events">NightOut Private Events</a>
+    <nav class="nav">
+        <form method="post" th:action="@{/logout}">
+            <button type="submit">Log out</button>
+        </form>
+    </nav>
+</header>
+<main class="shell">
+    <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Saved.</div>
+    <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Could not join.</div>
+
+    <section class="hero">
+        <span class="eyebrow">Invite only</span>
+        <h1 th:if="${eventView == null}">Join a private event</h1>
+        <h1 th:if="${eventView != null}" th:text="${eventView.event.eventName}">Private Event</h1>
+    </section>
+
+    <form class="card form-grid two" method="post" th:action="@{/private-events/join}">
+        <label>Code
+            <input name="joinCode" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" th:value="${joinCode}" required>
+        </label>
+        <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+        <button class="button" type="submit">Join Event</button>
+    </form>
+</main>
+</body>
+</html>

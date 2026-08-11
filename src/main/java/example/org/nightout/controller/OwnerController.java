@@ -43,14 +43,14 @@ public class OwnerController {
 
     @GetMapping("/owner")
     public String dashboard(@AuthenticationPrincipal AuthenticatedUser user, Model model) {
-        model.addAttribute("clubs", userManagementService.manageableClubs(user.getId()));
+        model.addAttribute("clubs", userManagementService.manageableClubs(user));
         return "owner/dashboard";
     }
 
     @GetMapping("/owner/clubs/{clubId}")
     public String club(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable Long clubId, Model model) {
-        userManagementService.requireCanManageClub(user.getId(), clubId);
-        Club club = userManagementService.manageableClubs(user.getId()).stream()
+        userManagementService.requireCanManageClub(user, clubId);
+        Club club = userManagementService.manageableClubs(user).stream()
                 .filter(candidate -> candidate.getId().equals(clubId))
                 .findFirst()
                 .orElseThrow();
@@ -66,7 +66,7 @@ public class OwnerController {
                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime startTime,
                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime endTime,
                               RedirectAttributes redirectAttributes) {
-        userManagementService.requireCanManageClub(user.getId(), clubId);
+        userManagementService.requireCanManageClub(user, clubId);
         eventService.create(clubId, eventName, eventDate, startTime, endTime);
         redirectAttributes.addFlashAttribute("successMessage", "Night created.");
         return "redirect:/owner/clubs/" + clubId;
@@ -75,7 +75,7 @@ public class OwnerController {
     @PostMapping("/owner/events/{eventId}/cancel")
     public String cancelEvent(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable Long eventId, RedirectAttributes redirectAttributes) {
         NightEvent event = eventService.requireById(eventId);
-        userManagementService.requireCanManageClub(user.getId(), event.getClub().getId());
+        userManagementService.requireCanManageClub(user, event.getClub().getId());
         eventService.cancel(eventId);
         redirectAttributes.addFlashAttribute("successMessage", "Night cancelled.");
         return "redirect:/owner/clubs/" + event.getClub().getId();
@@ -84,7 +84,7 @@ public class OwnerController {
     @PostMapping("/owner/photos/{photoId}/remove")
     public String removePhoto(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable Long photoId, RedirectAttributes redirectAttributes) {
         Long clubId = photoService.clubIdForPhoto(photoId);
-        userManagementService.requireCanManageClub(user.getId(), clubId);
+        userManagementService.requireCanManageClub(user, clubId);
         photoService.removePhoto(photoId);
         redirectAttributes.addFlashAttribute("successMessage", "Photo removed.");
         return "redirect:/owner/clubs/" + clubId;
@@ -92,8 +92,8 @@ public class OwnerController {
 
     @GetMapping("/owner/clubs/{clubId}/qr.png")
     public ResponseEntity<byte[]> clubQr(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable Long clubId) {
-        userManagementService.requireCanManageClub(user.getId(), clubId);
-        Club club = userManagementService.manageableClubs(user.getId()).stream()
+        userManagementService.requireCanManageClub(user, clubId);
+        Club club = userManagementService.manageableClubs(user).stream()
                 .filter(candidate -> candidate.getId().equals(clubId))
                 .findFirst()
                 .orElseThrow();

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${eventView.event.eventName} + ' | NightOut'">Private Event | NightOut</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/private-events">NightOut Private Events</a>
+    <nav class="nav">
+        <a href="/dashboard">Dashboard</a>
+        <form method="post" th:action="@{/logout}">
+            <button type="submit">Log out</button>
+        </form>
+    </nav>
+</header>
+<main class="shell">
+    <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Saved.</div>
+
+    <section class="hero">
+        <span class="eyebrow" th:text="${#temporals.format(eventView.event.eventDate, 'yyyy-MM-dd')}">2026-08-08</span>
+        <h1 th:text="${eventView.event.eventName}">Private Event</h1>
+        <p th:if="${eventView.event.location != null}" th:text="${eventView.event.location}">Location</p>
+    </section>
+
+    <section class="section">
+        <div class="card form-grid two">
+            <p><strong>Code</strong><br><span th:text="${eventView.event.joinCode}">12345678</span></p>
+            <p><strong>Time</strong><br><span th:text="${eventView.event.startTime + ' - ' + eventView.event.endTime}">21:00 - 03:00</span></p>
+            <p><strong>Expires</strong><br><span th:text="${#temporals.format(eventView.expiresOn, 'yyyy-MM-dd')}">2026-08-15</span></p>
+            <p><strong>Membership</strong><br><span>Joined</span></p>
+        </div>
+    </section>
+</main>
+</body>
+</html>

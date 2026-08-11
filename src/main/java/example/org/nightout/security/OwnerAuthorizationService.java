@@ -22,8 +22,11 @@ public class OwnerAuthorizationService {
         if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedUser principal)) {
             return false;
         }
-        if (principal.getRole() == UserRole.ADMIN) {
+        if (principal.hasRole(UserRole.ADMIN)) {
             return true;
+        }
+        if (!principal.hasRole(UserRole.CLUB_OWNER)) {
+            return false;
         }
         AppUser user = userRepository.findById(principal.getId()).orElse(null);
         return user != null && user.getClubs().stream().anyMatch(club -> club.getId().equals(clubId));

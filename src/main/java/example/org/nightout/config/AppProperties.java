@@ -15,10 +15,8 @@ public class AppProperties {
     private String storageProvider = "local";
     private String localStoragePath = "./storage/nightout";
     private boolean seedDemo = true;
-    private String adminLoginEmail = "admin@nightout.local";
-    private String adminLoginPassword = "admin12345";
-    private String clubLoginEmail = "owner@nightout.local";
-    private String clubLoginPassword = "owner12345";
+    private String seedAdminEmail = "admin@nightout.local";
+    private String seedClubOwnerEmail = "owner@nightout.local";
     private String schemaVersion = "1";
     private boolean schemaResetAllowed;
     private S3 s3 = new S3();
@@ -103,36 +101,20 @@ public class AppProperties {
         this.seedDemo = seedDemo;
     }
 
-    public String getAdminLoginEmail() {
-        return adminLoginEmail;
+    public String getSeedAdminEmail() {
+        return seedAdminEmail;
     }
 
-    public void setAdminLoginEmail(String adminLoginEmail) {
-        this.adminLoginEmail = adminLoginEmail;
+    public void setSeedAdminEmail(String seedAdminEmail) {
+        this.seedAdminEmail = seedAdminEmail;
     }
 
-    public String getAdminLoginPassword() {
-        return adminLoginPassword;
+    public String getSeedClubOwnerEmail() {
+        return seedClubOwnerEmail;
     }
 
-    public void setAdminLoginPassword(String adminLoginPassword) {
-        this.adminLoginPassword = adminLoginPassword;
-    }
-
-    public String getClubLoginEmail() {
-        return clubLoginEmail;
-    }
-
-    public void setClubLoginEmail(String clubLoginEmail) {
-        this.clubLoginEmail = clubLoginEmail;
-    }
-
-    public String getClubLoginPassword() {
-        return clubLoginPassword;
-    }
-
-    public void setClubLoginPassword(String clubLoginPassword) {
-        this.clubLoginPassword = clubLoginPassword;
+    public void setSeedClubOwnerEmail(String seedClubOwnerEmail) {
+        this.seedClubOwnerEmail = seedClubOwnerEmail;
     }
 
     public String getSchemaVersion() {

@@ -8,7 +8,6 @@ import example.org.nightout.repository.AppUserRepository;
 import example.org.nightout.repository.ClubRepository;
 
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,16 +26,14 @@ public class DemoDataLoader implements CommandLineRunner {
     private final AppUserRepository userRepository;
     private final ClubService clubService;
     private final EventService eventService;
-    private final PasswordEncoder passwordEncoder;
     private final Clock clock;
 
-    public DemoDataLoader(AppProperties properties, ClubRepository clubRepository, AppUserRepository userRepository, ClubService clubService, EventService eventService, PasswordEncoder passwordEncoder, Clock clock) {
+    public DemoDataLoader(AppProperties properties, ClubRepository clubRepository, AppUserRepository userRepository, ClubService clubService, EventService eventService, Clock clock) {
         this.properties = properties;
         this.clubRepository = clubRepository;
         this.userRepository = userRepository;
         this.clubService = clubService;
         this.eventService = eventService;
-        this.passwordEncoder = passwordEncoder;
         this.clock = clock;
     }
 
@@ -62,16 +59,16 @@ public class DemoDataLoader implements CommandLineRunner {
         }
 
         AppUser admin = new AppUser();
-        admin.setEmail(properties.getAdminLoginEmail());
+        admin.setEmail(properties.getSeedAdminEmail());
         admin.setFullName("Nightout Admin");
-        admin.setPasswordHash(passwordEncoder.encode(properties.getAdminLoginPassword()));
+        admin.setPasswordHash(null);
         admin.setRole(UserRole.ADMIN);
         userRepository.save(admin);
 
         AppUser owner = new AppUser();
-        owner.setEmail(properties.getClubLoginEmail());
+        owner.setEmail(properties.getSeedClubOwnerEmail());
         owner.setFullName("HALO Owner");
-        owner.setPasswordHash(passwordEncoder.encode(properties.getClubLoginPassword()));
+        owner.setPasswordHash(null);
         owner.setRole(UserRole.CLUB_OWNER);
         owner.getClubs().add(halo);
         userRepository.save(owner);

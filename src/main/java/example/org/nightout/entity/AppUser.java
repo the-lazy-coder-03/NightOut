@@ -28,8 +28,11 @@ public class AppUser {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String passwordHash;
+
+    @Column(name = "logto_subject", unique = true)
+    private String logtoSubject;
 
     @Column(name = "full_name", nullable = false)
     private String fullName;
@@ -70,6 +73,14 @@ public class AppUser {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public String getLogtoSubject() {
+        return logtoSubject;
+    }
+
+    public void setLogtoSubject(String logtoSubject) {
+        this.logtoSubject = logtoSubject;
     }
 
     public String getFullName() {

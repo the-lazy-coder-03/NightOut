@@ -14,11 +14,17 @@ public class DashboardController {
         if (user != null && user.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))) {
             return "redirect:/admin";
         }
+        if (user != null && user.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_CLUB_OWNER"))) {
+            return "redirect:/owner";
+        }
+        if (user != null) {
+            return "redirect:/private-events";
+        }
         return "redirect:/owner";
     }
 
     @GetMapping("/login")
     public String login() {
-        return "login";
+        return "redirect:/oauth2/authorization/logto";
     }
 }

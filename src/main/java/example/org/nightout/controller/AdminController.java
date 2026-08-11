@@ -123,10 +123,10 @@ public class AdminController {
     }
 
     @PostMapping("/admin/owners")
-    public String createOwner(@RequestParam String email, @RequestParam String fullName, @RequestParam String password,
-                              @RequestParam(required = false) List<Long> clubIds, RedirectAttributes redirectAttributes) {
-        userManagementService.createOwner(email, fullName, password, clubIds == null ? List.of() : clubIds);
-        redirectAttributes.addFlashAttribute("successMessage", "Club owner created.");
+    public String linkOwner(@RequestParam String email, @RequestParam String fullName,
+                            @RequestParam(required = false) List<Long> clubIds, RedirectAttributes redirectAttributes) {
+        userManagementService.linkOwner(email, fullName, clubIds == null ? List.of() : clubIds);
+        redirectAttributes.addFlashAttribute("successMessage", "Club owner linked. Create or invite the same email in Logto and assign the club_owner role.");
         return "redirect:/admin";
     }
 

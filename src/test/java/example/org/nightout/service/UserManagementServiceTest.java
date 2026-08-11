@@ -6,11 +6,15 @@ import example.org.nightout.entity.UserRole;
 import example.org.nightout.exception.BusinessRuleException;
 import example.org.nightout.repository.AppUserRepository;
 import example.org.nightout.repository.ClubRepository;
+import example.org.nightout.security.AuthenticatedUser;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -61,6 +65,19 @@ class UserManagementServiceTest {
                 .hasMessage("You cannot manage this club.");
     }
 
+    @Test
+    void logtoClubOwnerCanManageAssignedClub() {
+        assertThatCode(() -> userManagementService.requireCanManageClub(authenticated(owner, "ROLE_USER", "ROLE_CLUB_OWNER"), ownedClub.getId()))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void logtoUserCannotUseOldLocalClubAssignment() {
+        assertThatThrownBy(() -> userManagementService.requireCanManageClub(authenticated(owner, "ROLE_USER"), ownedClub.getId()))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessage("You cannot manage this club.");
+    }
+
     private Club club(String name, String slug) {
         Club club = new Club();
         club.setName(name);
@@ -69,5 +86,13 @@ class UserManagementServiceTest {
         club.setArea("Cape Town");
         club.setActive(true);
         return club;
+    }
+
+    private static AuthenticatedUser authenticated(AppUser user, String... authorities) {
+        return new AuthenticatedUser(
+                user,
+                null,
+                List.of(authorities).stream().map(SimpleGrantedAuthority::new).toList()
+        );
     }
 }

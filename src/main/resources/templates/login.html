@@ -15,12 +15,9 @@
         <span class="eyebrow">Managers</span>
         <h1>Club login</h1>
     </section>
-    <form class="card form-grid" method="post" th:action="@{/login}">
-        <div th:if="${param.error}" class="flash error">Invalid email or password.</div>
-        <label>Email <input type="email" name="username" autocomplete="email" required></label>
-        <label>Password <input type="password" name="password" autocomplete="current-password" required></label>
-        <button class="button" type="submit">Log in</button>
-    </form>
+    <div class="card form-grid">
+        <a class="button" href="/oauth2/authorization/logto">Continue with Logto</a>
+    </div>
 </main>
 </body>
 </html>

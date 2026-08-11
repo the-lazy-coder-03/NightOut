@@ -32,8 +32,11 @@ Required production values:
 - `NIGHTOUT_SCHEMA_VERSION`
 - `NIGHTOUT_SCHEMA_RESET_ALLOWED=false`
 - `NIGHTOUT_BASE_URL`
-- `NIGHTOUT_CLUB_LOGIN_EMAIL`
-- `NIGHTOUT_CLUB_LOGIN_PASSWORD`
+- `SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_LOGTO_ISSUER_URI=https://auth.primepick.co.za/oidc`
+- `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_CLIENT_ID`
+- `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_CLIENT_SECRET`
+- `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_SCOPE=openid,profile,email,roles`
+- `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_REDIRECT_URI={baseUrl}/login/oauth2/code/{registrationId}`
 - `SERVER_PORT=8090`
 - `NIGHTOUT_IMAGE_OPTIMIZATION_ENABLED=true`
 - `NIGHTOUT_IMAGE_OPTIMIZATION_MAX_DIMENSION=1080`
@@ -56,5 +59,18 @@ New uploads store S3 object keys in `photos.storage_file_id`. Existing rows from
 If `NIGHTOUT_SCHEMA_VERSION` changes and `NIGHTOUT_SCHEMA_RESET_ALLOWED=true`, app startup drops and rebuilds the configured Flyway schema. Leave reset allowed as `false` unless you intentionally want to erase the current database tables.
 
 For local runs from the project root, Spring imports `.env` automatically. Keep `.env` uncommitted; use `.env.example` as the shape of the file.
+
+## Logto
+
+NightOut uses Logto for every authenticated browser flow. Local email/password login is intentionally disabled.
+
+Create one Logto Traditional Web app named `NightOut Web` with:
+
+- Redirect URI: `https://primepick.co.za/login/oauth2/code/logto`
+- Local redirect URI: `http://localhost:8090/login/oauth2/code/logto`
+- Post sign-out redirect URI: `https://primepick.co.za/`
+- Local post sign-out redirect URI: `http://localhost:8090/`
+
+Create Logto roles named exactly `super_admin`, `club_owner`, and `user`. Existing NightOut admins and club owners keep their app-side assignments by signing in with the same email address already stored in `app_users`; NightOut links that row to the Logto subject on first login.
 
 See `deploy/rclone-s3.md` for rclone remote examples, optional union storage, and the `rclone serve s3` command.
