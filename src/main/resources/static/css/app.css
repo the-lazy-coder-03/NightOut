@@ -32,7 +32,7 @@ a {
 }
 
 .home-page {
-    background: #080618;
+    background: #071411;
     color: #f7f4ff;
 }
 
@@ -578,7 +578,7 @@ th {
     border-radius: 8px;
     background:
         linear-gradient(135deg, rgba(15, 118, 110, 0.78), rgba(255, 253, 248, 0.15)),
-        linear-gradient(45deg, #2d2520, #d94f45 55%, #b98222);
+        linear-gradient(45deg, #111f1b, #d94f45 55%, #b98222);
 }
 
 .photo-strip span:nth-child(2) {
@@ -590,7 +590,7 @@ th {
 .photo-strip span:nth-child(3) {
     background:
         linear-gradient(135deg, rgba(217, 79, 69, 0.75), rgba(255, 253, 248, 0.12)),
-        linear-gradient(45deg, #272320, #0f766e);
+        linear-gradient(45deg, #101b19, #0f766e);
 }
 
 .photo-strip span:nth-child(4) {
@@ -602,7 +602,7 @@ th {
 .photo-strip span:nth-child(5) {
     background:
         linear-gradient(135deg, rgba(15, 118, 110, 0.64), rgba(255, 253, 248, 0.14)),
-        linear-gradient(45deg, #1d1b17, #d94f45);
+        linear-gradient(45deg, #0e1714, #d94f45);
 }
 
 @media (max-width: 640px) {
