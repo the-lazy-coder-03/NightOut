@@ -15,12 +15,15 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class LogtoOidcUserService implements OAuth2UserService<OidcUserRequest, OidcUser> {
@@ -49,19 +52,20 @@ public class LogtoOidcUserService implements OAuth2UserService<OidcUserRequest, 
     @Transactional
     public AuthenticatedUser link(OidcUser oidcUser) {
         String subject = requireText(oidcUser.getSubject(), "Logto subject is missing.");
-        String email = requireText(oidcUser.getEmail(), "Logto email is missing. Enable/request the email scope.");
+        String email = textOrNull(oidcUser.getEmail());
         Collection<? extends GrantedAuthority> logtoAuthorities = authoritiesFor(oidcUser);
 
         AppUser user = userRepository.findByLogtoSubject(subject)
-                .or(() -> userRepository.findByEmailIgnoreCase(email))
+                .or(() -> email == null ? Optional.empty() : userRepository.findByEmailIgnoreCase(email))
                 .orElseGet(AppUser::new);
 
         UserRole localRole = effectiveRole(user, logtoAuthorities);
         Collection<? extends GrantedAuthority> authorities = authoritiesWithRole(logtoAuthorities, localRole);
+        String localEmail = localEmail(user, subject, email);
 
         user.setLogtoSubject(subject);
-        user.setEmail(email.trim().toLowerCase(Locale.ROOT));
-        user.setFullName(displayName(oidcUser, email));
+        user.setEmail(localEmail);
+        user.setFullName(displayName(oidcUser, email, subject));
         user.setRole(localRole);
         user.setPasswordHash(null);
 
@@ -152,7 +156,18 @@ public class LogtoOidcUserService implements OAuth2UserService<OidcUserRequest, 
         return authorities.stream().anyMatch(candidate -> candidate.getAuthority().equals(authority));
     }
 
-    private static String displayName(OidcUser oidcUser, String email) {
+    private static String localEmail(AppUser user, String subject, String email) {
+        if (email != null) {
+            return email.trim().toLowerCase(Locale.ROOT);
+        }
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            return user.getEmail();
+        }
+        UUID stableId = UUID.nameUUIDFromBytes(subject.getBytes(StandardCharsets.UTF_8));
+        return stableId + "@logto.local";
+    }
+
+    private static String displayName(OidcUser oidcUser, String email, String subject) {
         String name = oidcUser.getFullName();
         if (name != null && !name.isBlank()) {
             return name.trim();
@@ -161,8 +176,15 @@ public class LogtoOidcUserService implements OAuth2UserService<OidcUserRequest, 
         if (username != null && !username.isBlank()) {
             return username.trim();
         }
+        if (email == null || email.isBlank()) {
+            return subject;
+        }
         int at = email.indexOf('@');
         return at > 0 ? email.substring(0, at) : email;
+    }
+
+    private static String textOrNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 
     private static String requireText(String value, String message) {

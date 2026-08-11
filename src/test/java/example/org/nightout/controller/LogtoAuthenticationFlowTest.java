@@ -132,6 +132,19 @@ class LogtoAuthenticationFlowTest {
     }
 
     @Test
+    void usernameOnlyLogtoUserBecomesLocalUserWithInternalEmail() {
+        AuthenticatedUser linked = logtoOidcUserService.link(oidcWithoutEmail("logto-username-only", "Test2"));
+
+        assertThat(linked.getRole()).isEqualTo(UserRole.USER);
+        assertThat(linked.getAuthorities()).extracting("authority").containsExactly("ROLE_USER");
+
+        AppUser saved = userRepository.findByLogtoSubject("logto-username-only").orElseThrow();
+        assertThat(saved.getEmail()).endsWith("@logto.local");
+        assertThat(saved.getFullName()).isEqualTo("Test2");
+        assertThat(saved.getRole()).isEqualTo(UserRole.USER);
+    }
+
+    @Test
     void superAdminRoleMapsToAdminAuthority() {
         AuthenticatedUser linked = logtoOidcUserService.link(oidc("logto-admin", "admin@example.com", List.of("super_admin"), "Admin"));
 
@@ -183,6 +196,17 @@ class LogtoAuthenticationFlowTest {
         when(oidcUser.getPreferredUsername()).thenReturn(null);
         when(oidcUser.getClaims()).thenReturn(Map.of("sub", subject, "email", email, "roles", roles));
         when(oidcUser.getAttributes()).thenReturn(Map.of("sub", subject, "email", email, "roles", roles));
+        return oidcUser;
+    }
+
+    private static OidcUser oidcWithoutEmail(String subject, String username) {
+        OidcUser oidcUser = mock(OidcUser.class);
+        when(oidcUser.getSubject()).thenReturn(subject);
+        when(oidcUser.getEmail()).thenReturn(null);
+        when(oidcUser.getFullName()).thenReturn(null);
+        when(oidcUser.getPreferredUsername()).thenReturn(username);
+        when(oidcUser.getClaims()).thenReturn(Map.of("sub", subject, "username", username, "roles", List.of()));
+        when(oidcUser.getAttributes()).thenReturn(Map.of("sub", subject, "username", username, "roles", List.of()));
         return oidcUser;
     }
 
