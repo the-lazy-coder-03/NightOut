@@ -28,6 +28,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -62,6 +63,15 @@ class LogtoAuthenticationFlowTest {
         mockMvc.perform(get("/login"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/oauth2/authorization/logto"));
+    }
+
+    @Test
+    void loginErrorShowsLoginPageInsteadOfRestartingOAuthLoop() throws Exception {
+        mockMvc.perform(get("/login").param("error", "true"))
+                .andExpect(status().isOk())
+                .andExpect(header().doesNotExist("Location"))
+                .andExpect(content().string(containsString("Sign-in failed. Please start again.")))
+                .andExpect(content().string(containsString("Continue with Logto")));
     }
 
     @Test

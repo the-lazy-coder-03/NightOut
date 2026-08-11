@@ -15,6 +15,7 @@
         <span class="eyebrow">Managers</span>
         <h1>Club login</h1>
     </section>
+    <div th:if="${errorMessage != null}" class="flash error" th:text="${errorMessage}">Sign-in failed.</div>
     <div class="card form-grid">
         <a class="button" href="/oauth2/authorization/logto">Continue with Logto</a>
     </div>

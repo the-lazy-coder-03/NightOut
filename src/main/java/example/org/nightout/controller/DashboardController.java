@@ -4,7 +4,9 @@ import example.org.nightout.security.AuthenticatedUser;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class DashboardController {
@@ -24,7 +26,11 @@ public class DashboardController {
     }
 
     @GetMapping("/login")
-    public String login() {
+    public String login(@RequestParam(required = false) String error, Model model) {
+        if (error != null) {
+            model.addAttribute("errorMessage", "Sign-in failed. Please start again.");
+            return "login";
+        }
         return "redirect:/oauth2/authorization/logto";
     }
 }
