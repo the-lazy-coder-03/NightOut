@@ -11,6 +11,8 @@ import java.net.URI;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -30,9 +32,16 @@ class S3StorageConfig {
                         requireSetting("NIGHTOUT_S3_ACCESS_KEY", s3.getAccessKey()),
                         requireSetting("NIGHTOUT_S3_SECRET_KEY", s3.getSecretKey()))))
                 .httpClientBuilder(UrlConnectionHttpClient.builder())
-                .serviceConfiguration(S3Configuration.builder()
-                        .pathStyleAccessEnabled(s3.isPathStyle())
-                        .build())
+                .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
+                .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
+                .serviceConfiguration(s3Configuration(s3))
+                .build();
+    }
+
+    static S3Configuration s3Configuration(AppProperties.S3 s3) {
+        return S3Configuration.builder()
+                .pathStyleAccessEnabled(s3.isPathStyle())
+                .chunkedEncodingEnabled(false)
                 .build();
     }
 
