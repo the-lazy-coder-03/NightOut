@@ -6,7 +6,7 @@
     <title th:text="${eventView.event.eventName} + ' | NightOut'">Private Event | NightOut</title>
     <link rel="stylesheet" href="/css/app.css">
 </head>
-<body>
+<body class="private-events-page">
 <header class="topbar">
     <a class="brand" href="/private-events">NightOut Private Events</a>
     <nav class="nav">
@@ -17,18 +17,17 @@
     </nav>
 </header>
 <main class="shell">
-    <div th:if="${successMessage != null && successInviteLink == null}" class="flash success" th:text="${successMessage}">Saved.</div>
-    <section th:if="${successInviteLink}" class="private-share" aria-label="Private event invite">
+    <section th:if="${eventView.creator}" class="private-share" aria-label="Private event invite">
         <strong>Share invite link</strong>
-        <a th:href="${successInviteLink}" th:text="${successInviteLink}">https://primepick.co.za/private-events/invite/token</a>
-        <span th:text="|Event code: ${successInviteCode}|">Event code: 12345</span>
-        <span th:text="|Password: ${successInvitePassword}|">Password: example-password</span>
+        <a th:if="${shareInviteLink != null}" th:href="${shareInviteLink}" th:text="${shareInviteLink}">https://primepick.co.za/private-events/invite/token</a>
+        <span th:text="|Event code: ${eventView.event.joinCode}|">Event code: 12345</span>
+        <span th:if="${eventView.event.sharePassword != null}" th:text="|Password: ${eventView.event.sharePassword}|">Password: example-password</span>
     </section>
+    <div th:if="${successMessage != null}" class="flash success" th:text="${successMessage}">Saved.</div>
     <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Upload failed.</div>
 
     <section class="hero">
         <h1 th:text="${eventView.event.eventName}">Private Event</h1>
-        <p th:if="${eventView.event.location != null}" th:text="${eventView.event.location}">Location</p>
     </section>
 
     <section class="section">

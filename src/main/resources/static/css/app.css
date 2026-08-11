@@ -461,6 +461,15 @@ button[disabled] {
     color: var(--coral);
 }
 
+.private-events-page .eyebrow {
+    color: var(--teal-dark);
+}
+
+.private-events-page .flash.error {
+    border-color: rgba(132, 229, 216, 0.28);
+    color: var(--ink);
+}
+
 .private-share {
     display: grid;
     gap: 8px;

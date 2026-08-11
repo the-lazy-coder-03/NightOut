@@ -6,7 +6,7 @@
     <title>Private Events | NightOut</title>
     <link rel="stylesheet" href="/css/app.css">
 </head>
-<body>
+<body class="private-events-page">
 <header class="topbar">
     <a class="brand" href="/">NightOut</a>
     <nav class="nav">
@@ -46,7 +46,7 @@
             <a class="card card-link" th:each="item : ${events}" th:href="@{/private-events/{code}(code=${item.event.joinCode})}">
                 <h3 th:text="${item.event.eventName}">Birthday</h3>
                 <span class="meta" th:text="|Code ${item.event.joinCode}|">Code 12345</span>
-                <span class="meta" th:if="${item.event.location != null}" th:text="${item.event.location}">Cape Town</span>
+                <span class="meta" th:if="${item.event.sharePassword != null}" th:text="|Password ${item.event.sharePassword}|">Password example-password</span>
                 <span class="meta" th:text="|Expires ${#temporals.format(item.expiresOn, 'yyyy-MM-dd')}|">Expires 2026-09-13</span>
             </a>
         </div>

@@ -56,7 +56,7 @@ public class PrivateEventService {
     public List<PrivateEventView> eventsFor(AuthenticatedUser principal) {
         AppUser user = userManagementService.requireUser(principal.getId());
         return privateEventRepository.findVisibleToUser(user).stream()
-                .map(event -> viewFor(event, true))
+                .map(event -> viewFor(event, true, isCreator(event, user)))
                 .filter(view -> !view.expired() && !view.event().isCancelled())
                 .toList();
     }
@@ -74,7 +74,7 @@ public class PrivateEventService {
             throw new BusinessRuleException("This private event has expired.");
         }
         AppUser user = userManagementService.requireUser(principal.getId());
-        return viewFor(event, isParticipant(event, user));
+        return viewFor(event, isParticipant(event, user), isCreator(event, user));
     }
 
     @Transactional(readOnly = true)
@@ -87,11 +87,11 @@ public class PrivateEventService {
         if (!isParticipant(event, user)) {
             throw new BusinessRuleException("Join this private event first.");
         }
-        return viewFor(event, true);
+        return viewFor(event, true, isCreator(event, user));
     }
 
     @Transactional
-    public PrivateEvent create(AuthenticatedUser principal, String eventName, String location, String password) {
+    public PrivateEvent create(AuthenticatedUser principal, String eventName, String password) {
         AppUser creator = userManagementService.requireUser(principal.getId());
         LocalDate today = LocalDate.now(clock);
         if (password == null || password.length() < 8) {
@@ -104,10 +104,10 @@ public class PrivateEventService {
         event.setEventDate(today);
         event.setStartTime(DEFAULT_START_TIME);
         event.setEndTime(DEFAULT_END_TIME);
-        event.setLocation(blankToNull(location));
         event.setJoinCode(generateJoinCode());
         event.setInviteToken(generateInviteToken());
         event.setPasswordHash(passwordEncoder.encode(password));
+        event.setSharePassword(password);
         event.setCreatedAt(Instant.now(clock));
 
         PrivateEvent saved = privateEventRepository.save(event);
@@ -153,8 +153,8 @@ public class PrivateEventService {
         return createdDate.plusDays(properties.getPrivateEventRetentionDays());
     }
 
-    private PrivateEventView viewFor(PrivateEvent event, boolean member) {
-        return new PrivateEventView(event, expiresOn(event), expired(event), member);
+    private PrivateEventView viewFor(PrivateEvent event, boolean member, boolean creator) {
+        return new PrivateEventView(event, expiresOn(event), expired(event), member, creator);
     }
 
     private boolean expired(PrivateEvent event) {
@@ -162,10 +162,14 @@ public class PrivateEventService {
     }
 
     private boolean isParticipant(PrivateEvent event, AppUser user) {
-        if (Objects.equals(event.getCreator().getId(), user.getId())) {
+        if (isCreator(event, user)) {
             return true;
         }
         return membershipRepository.existsByPrivateEventAndUser(event, user);
+    }
+
+    private static boolean isCreator(PrivateEvent event, AppUser user) {
+        return Objects.equals(event.getCreator().getId(), user.getId());
     }
 
     private void addMember(PrivateEvent event, AppUser user) {
@@ -212,7 +216,4 @@ public class PrivateEventService {
         return value.trim();
     }
 
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.trim();
-    }
 }

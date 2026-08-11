@@ -115,15 +115,15 @@ class PrivateEventFlowTest {
     }
 
     @Test
-    void createPageOnlyAsksForNameLocationAndPassword() throws Exception {
+    void createPageOnlyAsksForNameAndPassword() throws Exception {
         mockMvc.perform(get("/private-events/create")
                         .with(auth(creator, "ROLE_USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("name=\"eventName\"")))
-                .andExpect(content().string(containsString("name=\"location\"")))
                 .andExpect(content().string(containsString("name=\"password\"")))
                 .andExpect(content().string(containsString("name=\"password\" type=\"text\"")))
                 .andExpect(content().string(not(containsString("type=\"password\""))))
+                .andExpect(content().string(not(containsString("name=\"location\""))))
                 .andExpect(content().string(not(containsString("name=\"eventDate\""))))
                 .andExpect(content().string(not(containsString("name=\"startTime\""))))
                 .andExpect(content().string(not(containsString("name=\"endTime\""))));
@@ -135,24 +135,20 @@ class PrivateEventFlowTest {
                         .with(auth(creator, "ROLE_USER"))
                         .with(csrf())
                         .param("eventName", "Birthday Table")
-                        .param("location", "Cape Town")
                         .param("password", "share-this-password"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/private-events/*"))
-                .andExpect(flash().attribute("successMessage", "Private event created."))
-                .andExpect(flash().attributeExists("successInviteLink"))
-                .andExpect(flash().attributeExists("successInviteCode"))
-                .andExpect(flash().attribute("successInvitePassword", "share-this-password"))
                 .andReturn();
 
         PrivateEvent event = privateEventRepository.findAll().getFirst();
         assertThat(event.getJoinCode()).matches("\\d{5}");
         assertThat(event.getInviteToken()).isNotBlank();
-        assertThat(result.getFlashMap().get("successInviteLink"))
-                .isEqualTo("http://localhost:8090/private-events/invite/" + event.getInviteToken());
+        assertThat(event.getSharePassword()).isEqualTo("share-this-password");
+        assertThat(result.getFlashMap().containsKey("successInviteLink")).isFalse();
         assertThat(event.getEventDate()).isEqualTo(LocalDate.of(2026, 8, 12));
         assertThat(event.getStartTime()).isEqualTo(LocalTime.MIDNIGHT);
         assertThat(event.getEndTime()).isEqualTo(LocalTime.of(23, 59));
+        assertThat(event.getLocation()).isNull();
         assertThat(privateEventService.expiresOn(event)).isEqualTo(LocalDate.of(2026, 9, 13));
         assertThat(membershipRepository.existsByPrivateEventAndUser(event, creator)).isTrue();
 
@@ -160,24 +156,20 @@ class PrivateEventFlowTest {
                         .with(auth(creator, "ROLE_USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Birthday Table")))
-                .andExpect(content().string(containsString("Code " + event.getJoinCode())));
+                .andExpect(content().string(containsString("Code " + event.getJoinCode())))
+                .andExpect(content().string(containsString("Password share-this-password")));
     }
 
     @Test
-    void createdEventInviteDetailsRenderWithoutMiddleBox() throws Exception {
+    void creatorAlwaysSeesInviteDetailsAtTopWithoutMiddleBox() throws Exception {
         PrivateEvent event = privateEventService.create(
                 principal(creator, "ROLE_USER"),
                 "Invite Display",
-                "Cape Town",
                 "correct-password"
         );
 
         mockMvc.perform(get("/private-events/{code}", event.getJoinCode())
-                        .with(auth(creator, "ROLE_USER"))
-                        .flashAttr("successMessage", "Private event created.")
-                        .flashAttr("successInviteLink", "http://localhost:8090/private-events/invite/" + event.getInviteToken())
-                        .flashAttr("successInviteCode", event.getJoinCode())
-                        .flashAttr("successInvitePassword", "correct-password"))
+                        .with(auth(creator, "ROLE_USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("class=\"private-share\"")))
                 .andExpect(content().string(containsString("http://localhost:8090/private-events/invite/" + event.getInviteToken())))
@@ -189,11 +181,27 @@ class PrivateEventFlowTest {
     }
 
     @Test
+    void guestDoesNotSeeCreatorInviteDetails() throws Exception {
+        PrivateEvent event = privateEventService.create(
+                principal(creator, "ROLE_USER"),
+                "Guest View",
+                "correct-password"
+        );
+        privateEventService.join(principal(guest, "ROLE_USER"), event.getJoinCode(), "correct-password");
+
+        mockMvc.perform(get("/private-events/{code}", event.getJoinCode())
+                        .with(auth(guest, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("class=\"private-share\""))))
+                .andExpect(content().string(not(containsString("http://localhost:8090/private-events/invite/" + event.getInviteToken()))))
+                .andExpect(content().string(not(containsString("Password: correct-password"))));
+    }
+
+    @Test
     void inviteLinkBindsEventToLoggedInUserWithoutEventPassword() throws Exception {
         PrivateEvent event = privateEventService.create(
                 principal(creator, "ROLE_USER"),
                 "Invite Party",
-                "Cape Town",
                 "correct-password"
         );
 
@@ -228,7 +236,6 @@ class PrivateEventFlowTest {
         PrivateEvent event = privateEventService.create(
                 principal(creator, "ROLE_USER"),
                 "Friends Only",
-                "Stellenbosch",
                 "correct-password"
         );
 
@@ -296,7 +303,6 @@ class PrivateEventFlowTest {
         PrivateEvent event = privateEventService.create(
                 principal(creator, "ROLE_USER"),
                 "Photo Party",
-                "Cape Town",
                 "correct-password"
         );
 

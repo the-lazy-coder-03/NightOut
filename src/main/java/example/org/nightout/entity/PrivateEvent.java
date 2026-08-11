@@ -53,6 +53,9 @@ public class PrivateEvent {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "share_password")
+    private String sharePassword;
+
     @Column(nullable = false)
     private boolean cancelled;
 
@@ -136,6 +139,14 @@ public class PrivateEvent {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public String getSharePassword() {
+        return sharePassword;
+    }
+
+    public void setSharePassword(String sharePassword) {
+        this.sharePassword = sharePassword;
     }
 
     public boolean isCancelled() {

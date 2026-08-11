@@ -8,6 +8,7 @@ public record PrivateEventView(
         PrivateEvent event,
         LocalDate expiresOn,
         boolean expired,
-        boolean member
+        boolean member,
+        boolean creator
 ) {
 }

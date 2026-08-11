@@ -50,15 +50,10 @@ public class PrivateEventController {
     @PostMapping
     public String create(@AuthenticationPrincipal AuthenticatedUser user,
                          @RequestParam String eventName,
-                         @RequestParam(required = false) String location,
                          @RequestParam String password,
                          RedirectAttributes redirectAttributes) {
         try {
-            PrivateEvent event = privateEventService.create(user, eventName, location, password);
-            redirectAttributes.addFlashAttribute("successMessage", "Private event created.");
-            redirectAttributes.addFlashAttribute("successInviteLink", inviteLink(event));
-            redirectAttributes.addFlashAttribute("successInviteCode", event.getJoinCode());
-            redirectAttributes.addFlashAttribute("successInvitePassword", password);
+            PrivateEvent event = privateEventService.create(user, eventName, password);
             return "redirect:/private-events/" + event.getJoinCode();
         } catch (BusinessRuleException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -111,6 +106,9 @@ public class PrivateEventController {
             return "private-events/join";
         }
         model.addAttribute("photos", privateEventPhotoService.photosFor(user, joinCode));
+        if (view.creator() && view.event().getInviteToken() != null) {
+            model.addAttribute("shareInviteLink", inviteLink(view.event()));
+        }
         addUploadLimits(model);
         return "private-events/event";
     }
