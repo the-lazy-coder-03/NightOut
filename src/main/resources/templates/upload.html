@@ -23,7 +23,12 @@
     </section>
 
     <form class="upload-zone" method="post" enctype="multipart/form-data" data-upload-form
-          th:action="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${eventView.event.id})}">
+          th:action="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${eventView.event.id})}"
+          th:data-upload-success-url="@{/clubs/{slug}/events/{id}/gallery(slug=${club.slug},id=${eventView.event.id})}"
+          th:data-upload-error-url="@{/clubs/{slug}/events/{id}/upload(slug=${club.slug},id=${eventView.event.id})}"
+          th:data-upload-max-files="${maxUploadCount}"
+          th:data-upload-max-file-bytes="${maxUploadBytes}"
+          th:data-upload-max-batch-bytes="${maxUploadBatchBytes}">
         <label>
             Select photos
             <input data-photo-input type="file" name="photos" accept="image/jpeg,image/png,image/webp" multiple th:disabled="${!eventView.uploadAvailable}">

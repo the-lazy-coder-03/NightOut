@@ -8,7 +8,8 @@ public class AppProperties {
     private String baseUrl = "http://localhost:8090";
     private String timeZone = "Africa/Johannesburg";
     private int retentionDays = 7;
-    private long maxUploadBytes = 10 * 1024 * 1024;
+    private long maxUploadBytes = 25 * 1024 * 1024;
+    private long maxRequestBytes = 300 * 1024 * 1024;
     private int maxUploadCount = 12;
     private String storageProvider = "local";
     private String localStoragePath = "./storage/nightout";
@@ -51,6 +52,14 @@ public class AppProperties {
 
     public void setMaxUploadBytes(long maxUploadBytes) {
         this.maxUploadBytes = maxUploadBytes;
+    }
+
+    public long getMaxRequestBytes() {
+        return maxRequestBytes;
+    }
+
+    public void setMaxRequestBytes(long maxRequestBytes) {
+        this.maxRequestBytes = maxRequestBytes;
     }
 
     public int getMaxUploadCount() {

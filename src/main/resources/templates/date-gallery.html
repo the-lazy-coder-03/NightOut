@@ -41,7 +41,12 @@
                 <button class="icon-button" type="button" data-upload-dialog-close aria-label="Close">&times;</button>
             </div>
             <form class="upload-choice-form" method="post" enctype="multipart/form-data" data-upload-form data-upload-choice-form
-                  th:action="@{/clubs/{slug}/dates/{date}/upload(slug=${club.slug},date=${nightDate})}">
+                  th:action="@{/clubs/{slug}/dates/{date}/upload(slug=${club.slug},date=${nightDate})}"
+                  th:data-upload-success-url="@{/clubs/{slug}/dates/{date}(slug=${club.slug},date=${nightDate})}"
+                  th:data-upload-error-url="@{/clubs/{slug}/dates/{date}(slug=${club.slug},date=${nightDate})}"
+                  th:data-upload-max-files="${maxUploadCount}"
+                  th:data-upload-max-file-bytes="${maxUploadBytes}"
+                  th:data-upload-max-batch-bytes="${maxUploadBatchBytes}">
                 <input th:if="${#lists.size(uploadEvents) == 1}" type="hidden" name="eventId" th:value="${uploadEvents[0].event.id}">
                 <label th:if="${#lists.size(uploadEvents) > 1}">
                     Choose Night

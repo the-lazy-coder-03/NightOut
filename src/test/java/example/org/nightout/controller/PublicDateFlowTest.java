@@ -16,6 +16,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -36,6 +37,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -144,6 +146,10 @@ class PublicDateFlowTest {
                 .andExpect(content().string(containsString("accept=\"image/jpeg,image/png,image/webp\"")))
                 .andExpect(content().string(containsString("multiple")))
                 .andExpect(content().string(containsString("action=\"/clubs/halo/dates/2026-08-07/upload\"")))
+                .andExpect(content().string(containsString("data-upload-success-url=\"/clubs/halo/dates/2026-08-07\"")))
+                .andExpect(content().string(containsString("data-upload-max-files=\"12\"")))
+                .andExpect(content().string(containsString("data-upload-max-file-bytes=\"26214400\"")))
+                .andExpect(content().string(containsString("data-upload-max-batch-bytes=\"283115520\"")))
                 .andExpect(content().string(containsString("name=\"eventId\"")))
                 .andReturn()
                 .getResponse()
@@ -166,6 +172,17 @@ class PublicDateFlowTest {
     }
 
     @Test
+    void eventUploadPageIncludesBatchUploadLimits() throws Exception {
+        mockMvc.perform(get("/clubs/halo/events/{eventId}/upload", haloFriday.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-upload-success-url=\"/clubs/halo/events/" + haloFriday.getId() + "/gallery\"")))
+                .andExpect(content().string(containsString("data-upload-error-url=\"/clubs/halo/events/" + haloFriday.getId() + "/upload\"")))
+                .andExpect(content().string(containsString("data-upload-max-files=\"12\"")))
+                .andExpect(content().string(containsString("data-upload-max-file-bytes=\"26214400\"")))
+                .andExpect(content().string(containsString("data-upload-max-batch-bytes=\"283115520\"")));
+    }
+
+    @Test
     void datePageUploadRedirectsBackToDateGalleryAndCreatesUploadTargetOnSuccess() throws Exception {
         mockMvc.perform(multipart("/clubs/halo/dates/2026-08-06/upload")
                         .file(jpeg("inline.jpg"))
@@ -180,6 +197,22 @@ class PublicDateFlowTest {
     }
 
     @Test
+    void datePageBatchUploadReturnsJsonAndCreatesUploadTargetOnSuccess() throws Exception {
+        mockMvc.perform(multipart("/clubs/halo/dates/2026-08-06/upload")
+                        .file(jpeg("batch-inline.jpg"))
+                        .header("X-NightOut-Batch-Upload", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.count").value(1))
+                .andExpect(jsonPath("$.message").doesNotExist())
+                .andExpect(jsonPath("$.redirectUrl").value("/clubs/halo/dates/2026-08-06"));
+
+        List<NightEvent> events = eventRepository.findByClubAndCancelledFalseAndEventDateOrderByStartTimeAsc(halo, LocalDate.of(2026, 8, 6));
+        assertThat(events).hasSize(1);
+    }
+
+    @Test
     void datePageUploadRedirectsBackToDateGalleryOnFailure() throws Exception {
         MockMultipartFile text = new MockMultipartFile("photos", "notes.txt", "text/plain", "not an image".getBytes(StandardCharsets.UTF_8));
 
@@ -189,6 +222,21 @@ class PublicDateFlowTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/clubs/halo/dates/2026-08-06"))
                 .andExpect(flash().attribute("errorMessage", "Only JPEG, PNG, and WebP images can be uploaded."));
+    }
+
+    @Test
+    void datePageBatchUploadReturnsJsonErrorOnFailure() throws Exception {
+        MockMultipartFile text = new MockMultipartFile("photos", "notes.txt", "text/plain", "not an image".getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/clubs/halo/dates/2026-08-06/upload")
+                        .file(text)
+                        .header("X-NightOut-Batch-Upload", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.count").value(0))
+                .andExpect(jsonPath("$.message").value("Only JPEG, PNG, and WebP images can be uploaded."))
+                .andExpect(jsonPath("$.redirectUrl").value("/clubs/halo/dates/2026-08-06"));
     }
 
     @Test
@@ -220,6 +268,19 @@ class PublicDateFlowTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/clubs/halo/dates/2026-08-07"))
                 .andExpect(flash().attribute("successMessage", "1 photo uploaded successfully."));
+    }
+
+    @Test
+    void eventBatchUploadCanStillReturnToDateGalleryWhenRequested() throws Exception {
+        mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
+                        .file(jpeg("inline-event-batch.jpg"))
+                        .param("returnDate", "2026-08-07")
+                        .header("X-NightOut-Batch-Upload", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.count").value(1))
+                .andExpect(jsonPath("$.redirectUrl").value("/clubs/halo/dates/2026-08-07"));
     }
 
     @Test

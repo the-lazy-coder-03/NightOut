@@ -1,5 +1,6 @@
 package example.org.nightout.controller;
 
+import example.org.nightout.config.AppProperties;
 import example.org.nightout.dto.EventView;
 import example.org.nightout.entity.Club;
 import example.org.nightout.entity.NightEvent;
@@ -12,11 +13,13 @@ import example.org.nightout.service.PhotoService;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -30,12 +33,14 @@ public class PublicController {
     private final EventService eventService;
     private final NightlifeDateService nightlifeDateService;
     private final PhotoService photoService;
+    private final AppProperties properties;
 
-    public PublicController(ClubService clubService, EventService eventService, NightlifeDateService nightlifeDateService, PhotoService photoService) {
+    public PublicController(ClubService clubService, EventService eventService, NightlifeDateService nightlifeDateService, PhotoService photoService, AppProperties properties) {
         this.clubService = clubService;
         this.eventService = eventService;
         this.nightlifeDateService = nightlifeDateService;
         this.photoService = photoService;
+        this.properties = properties;
     }
 
     @GetMapping("/")
@@ -73,6 +78,7 @@ public class PublicController {
         model.addAttribute("uploadEvents", events.stream().filter(EventView::uploadAvailable).toList());
         model.addAttribute("dateUploadAvailable", eventService.uploadAvailableForDate(nightDate));
         model.addAttribute("photos", photoService.galleryPhotosForEvents(events.stream().map(EventView::event).toList()));
+        addUploadLimits(model);
         return "date-gallery";
     }
 
@@ -102,7 +108,24 @@ public class PublicController {
         if (!view.uploadAvailable()) {
             model.addAttribute("errorMessage", view.status().name().equals("UPCOMING") ? "This night has not happened yet." : "This gallery has expired.");
         }
+        addUploadLimits(model);
         return "upload";
+    }
+
+    @PostMapping(value = "/clubs/{slug}/events/{eventId}/upload", headers = "X-NightOut-Batch-Upload=true")
+    @ResponseBody
+    public ResponseEntity<UploadBatchResponse> handleUploadBatch(
+            @PathVariable String slug,
+            @PathVariable Long eventId,
+            @RequestParam(value = "photos", required = false) MultipartFile[] photos,
+            @RequestParam(value = "returnDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate returnDate
+    ) {
+        try {
+            int count = photoService.uploadPhotos(slug, eventId, photos).size();
+            return ResponseEntity.ok(UploadBatchResponse.success(count, uploadRedirectUrl(slug, eventId, returnDate, false)));
+        } catch (BusinessRuleException ex) {
+            return ResponseEntity.badRequest().body(UploadBatchResponse.failure(ex.getMessage(), uploadRedirectUrl(slug, eventId, returnDate, true)));
+        }
     }
 
     @PostMapping("/clubs/{slug}/events/{eventId}/upload")
@@ -123,6 +146,23 @@ public class PublicController {
         }
     }
 
+    @PostMapping(value = "/clubs/{slug}/dates/{nightDate}/upload", headers = "X-NightOut-Batch-Upload=true")
+    @ResponseBody
+    public ResponseEntity<UploadBatchResponse> handleDateUploadBatch(
+            @PathVariable String slug,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate nightDate,
+            @RequestParam(value = "eventId", required = false) Long eventId,
+            @RequestParam(value = "photos", required = false) MultipartFile[] photos
+    ) {
+        String redirectUrl = dateGalleryUrl(slug, nightDate);
+        try {
+            int count = photoService.uploadPhotosForDate(slug, nightDate, eventId, photos).size();
+            return ResponseEntity.ok(UploadBatchResponse.success(count, redirectUrl));
+        } catch (BusinessRuleException ex) {
+            return ResponseEntity.badRequest().body(UploadBatchResponse.failure(ex.getMessage(), redirectUrl));
+        }
+    }
+
     @PostMapping("/clubs/{slug}/dates/{nightDate}/upload")
     public String handleDateUpload(
             @PathVariable String slug,
@@ -140,10 +180,34 @@ public class PublicController {
         return "redirect:/clubs/" + slug + "/dates/" + nightDate;
     }
 
+    private void addUploadLimits(Model model) {
+        model.addAttribute("maxUploadCount", properties.getMaxUploadCount());
+        model.addAttribute("maxUploadBytes", properties.getMaxUploadBytes());
+        model.addAttribute("maxUploadBatchBytes", Math.max(1, properties.getMaxRequestBytes() * 9 / 10));
+    }
+
     private static String uploadRedirect(String slug, Long eventId, LocalDate returnDate, boolean failed) {
+        return "redirect:" + uploadRedirectUrl(slug, eventId, returnDate, failed);
+    }
+
+    private static String uploadRedirectUrl(String slug, Long eventId, LocalDate returnDate, boolean failed) {
         if (returnDate != null) {
-            return "redirect:/clubs/" + slug + "/dates/" + returnDate;
+            return dateGalleryUrl(slug, returnDate);
         }
-        return "redirect:/clubs/" + slug + "/events/" + eventId + (failed ? "/upload" : "/gallery");
+        return "/clubs/" + slug + "/events/" + eventId + (failed ? "/upload" : "/gallery");
+    }
+
+    private static String dateGalleryUrl(String slug, LocalDate nightDate) {
+        return "/clubs/" + slug + "/dates/" + nightDate;
+    }
+
+    private record UploadBatchResponse(boolean success, int count, String message, String redirectUrl) {
+        static UploadBatchResponse success(int count, String redirectUrl) {
+            return new UploadBatchResponse(true, count, null, redirectUrl);
+        }
+
+        static UploadBatchResponse failure(String message, String redirectUrl) {
+            return new UploadBatchResponse(false, 0, message, redirectUrl);
+        }
     }
 }
