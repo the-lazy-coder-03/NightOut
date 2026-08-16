@@ -118,6 +118,12 @@ mvn test
 
 Tests use H2 in PostgreSQL mode, Flyway migrations, local storage, and mocked storage for cleanup resilience.
 
+Load tests live in `load-tests/`. Start with the read-only k6 test:
+
+```sh
+docker run --rm -e BASE_URL=https://primepick.co.za -v "$PWD:/repo" grafana/k6 run /repo/load-tests/k6/public-read.js
+```
+
 ## Seven-Day Lifecycle
 
 Events are created by admins or club owners. Uploads and galleries are available from the event date through `event date + NIGHTOUT_RETENTION_DAYS`.

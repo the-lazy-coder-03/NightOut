@@ -150,6 +150,12 @@ public class PhotoService {
         return photo;
     }
 
+    @Transactional(readOnly = true)
+    public Photo requirePhoto(Long photoId) {
+        return photoRepository.findWithEventById(photoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Photo not found."));
+    }
+
     public StorageResource retrieve(Photo photo) {
         return storageService.retrieve(photo.getStorageFileId());
     }

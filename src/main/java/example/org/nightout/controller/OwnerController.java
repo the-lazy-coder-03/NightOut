@@ -2,14 +2,20 @@ package example.org.nightout.controller;
 
 import example.org.nightout.entity.Club;
 import example.org.nightout.entity.NightEvent;
+import example.org.nightout.entity.Photo;
 import example.org.nightout.security.AuthenticatedUser;
 import example.org.nightout.service.AdminQueryService;
 import example.org.nightout.service.EventService;
 import example.org.nightout.service.PhotoService;
 import example.org.nightout.service.QrCodeService;
 import example.org.nightout.service.UserManagementService;
+import example.org.nightout.storage.StorageResource;
 
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -90,6 +96,13 @@ public class OwnerController {
         return "redirect:/owner/clubs/" + clubId;
     }
 
+    @GetMapping("/owner/photos/{photoId}/download")
+    public ResponseEntity<Resource> downloadPhoto(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable Long photoId) {
+        Photo photo = photoService.requirePhoto(photoId);
+        userManagementService.requireCanManageClub(user, photo.getEvent().getClub().getId());
+        return downloadablePhoto(photo);
+    }
+
     @GetMapping("/owner/clubs/{clubId}/qr.png")
     public ResponseEntity<byte[]> clubQr(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable Long clubId) {
         userManagementService.requireCanManageClub(user, clubId);
@@ -100,5 +113,18 @@ public class OwnerController {
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
                 .body(qrCodeService.clubQrPng(club));
+    }
+
+    private ResponseEntity<Resource> downloadablePhoto(Photo photo) {
+        StorageResource stored = photoService.retrieve(photo);
+        ContentDisposition contentDisposition = ContentDisposition.attachment()
+                .filename(photo.getSafeFilename())
+                .build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(photo.getMimeType()))
+                .contentLength(stored.contentLength())
+                .cacheControl(CacheControl.noCache().cachePrivate())
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                .body(stored.resource());
     }
 }

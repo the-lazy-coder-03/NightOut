@@ -223,6 +223,8 @@ class PublicDateFlowTest {
                 .andExpect(content().string(containsString("width=\"320\"")))
                 .andExpect(content().string(containsString("height=\"320\"")))
                 .andExpect(content().string(containsString("decoding=\"async\"")))
+                .andExpect(content().string(containsString("data-gallery-download=\"/photos/" + haloFridayPhoto.getId() + "/download\"")))
+                .andExpect(content().string(containsString("href=\"/photos/" + haloFridayPhoto.getId() + "/download\"")))
                 .andExpect(content().string(containsString("loading=\"eager\"")))
                 .andExpect(content().string(containsString("fetchpriority=\"high\"")))
                 .andExpect(content().string(containsString("action=\"/clubs/halo/dates/2026-08-07/upload\"")))

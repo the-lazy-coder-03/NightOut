@@ -91,6 +91,17 @@ class LogtoAuthenticationFlowTest {
     }
 
     @Test
+    void faviconAssetsArePublic() throws Exception {
+        mockMvc.perform(get("/favicon.ico"))
+                .andExpect(status().isOk())
+                .andExpect(header().doesNotExist("Location"));
+
+        mockMvc.perform(get("/favicon.svg"))
+                .andExpect(status().isOk())
+                .andExpect(header().doesNotExist("Location"));
+    }
+
+    @Test
     void userRoleCannotAccessAdmin() throws Exception {
         mockMvc.perform(get("/admin").with(user("guest").roles("USER")))
                 .andExpect(status().isForbidden());

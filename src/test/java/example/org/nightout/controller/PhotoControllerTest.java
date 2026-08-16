@@ -62,6 +62,20 @@ class PhotoControllerTest {
                 .andExpect(header().string("ETag", startsWith("\"photo-43-4567-PENDING")));
     }
 
+    @Test
+    void photoDownloadIsServedAsAttachment() throws Exception {
+        Photo photo = photo(44L, PhotoOptimizationStatus.COMPLETE, 7890);
+        byte[] body = new byte[]{1, 2, 3};
+        when(photoService.publicPhoto(44L)).thenReturn(photo);
+        when(photoService.retrieve(photo)).thenReturn(new StorageResource(new ByteArrayResource(body), body.length));
+
+        mockMvc.perform(get("/photos/44/download"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "image/jpeg"))
+                .andExpect(header().string("Content-Disposition", containsString("attachment")))
+                .andExpect(header().string("Content-Disposition", containsString("photo.jpg")));
+    }
+
     private static Photo photo(Long id, PhotoOptimizationStatus optimizationStatus, long fileSize) {
         Photo photo = new Photo();
         ReflectionTestUtils.setField(photo, "id", id);

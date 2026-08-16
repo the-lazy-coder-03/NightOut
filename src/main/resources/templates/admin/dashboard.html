@@ -145,7 +145,8 @@
                     <td th:text="${photo.event.eventName}">Saturday</td>
                     <td th:text="${photo.originalFilename}">photo.jpg</td>
                     <td th:text="${#temporals.format(photo.uploadedAt, 'yyyy-MM-dd HH:mm')}">2026-08-08</td>
-                    <td>
+                    <td class="actions">
+                        <a class="button secondary" th:href="@{/admin/photos/{id}/download(id=${photo.id})}" download>Download</a>
                         <form method="post" th:action="@{/admin/photos/{id}/remove(id=${photo.id})}">
                             <button class="button danger" type="submit">Remove</button>
                         </form>

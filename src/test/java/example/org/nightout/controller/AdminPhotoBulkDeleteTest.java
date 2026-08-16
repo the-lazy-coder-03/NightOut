@@ -7,6 +7,7 @@ import example.org.nightout.exception.StorageException;
 import example.org.nightout.repository.ClubRepository;
 import example.org.nightout.repository.NightEventRepository;
 import example.org.nightout.repository.PhotoRepository;
+import example.org.nightout.storage.StorageResource;
 import example.org.nightout.storage.StorageService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -25,12 +27,14 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -69,13 +73,28 @@ class AdminPhotoBulkDeleteTest {
 
     @Test
     void adminDashboardShowsDeleteAllPhotosButtonWhenPhotosExist() throws Exception {
-        savePhoto("one.jpg");
+        Photo photo = savePhoto("one.jpg");
 
         mockMvc.perform(get("/admin")
                         .with(user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Delete All Photos")))
-                .andExpect(content().string(containsString("action=\"/admin/photos/delete-all\"")));
+                .andExpect(content().string(containsString("action=\"/admin/photos/delete-all\"")))
+                .andExpect(content().string(containsString("href=\"/admin/photos/" + photo.getId() + "/download\"")));
+    }
+
+    @Test
+    void adminCanDownloadAnyListedPhoto() throws Exception {
+        Photo photo = savePhoto("one.jpg");
+        byte[] body = new byte[]{1, 2, 3};
+        when(storageService.retrieve("one.jpg")).thenReturn(new StorageResource(new ByteArrayResource(body), body.length));
+
+        mockMvc.perform(get("/admin/photos/{photoId}/download", photo.getId())
+                        .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("image/jpeg"))
+                .andExpect(header().string("Content-Disposition", containsString("attachment")))
+                .andExpect(header().string("Content-Disposition", containsString("one.jpg")));
     }
 
     @Test

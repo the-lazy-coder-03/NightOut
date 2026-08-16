@@ -11,7 +11,7 @@
     <a class="brand" href="/">NightOut</a>
     <nav class="nav">
         <a th:href="@{/clubs/{slug}(slug=${club.slug})}">Dates</a>
-        <a href="/login">Club login</a>
+        <a href="/login">Login</a>
     </nav>
 </header>
 <main class="shell">
@@ -28,11 +28,14 @@
             <button class="button" type="button" data-upload-dialog-open>Upload</button>
         </div>
         <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
-            <button class="gallery-button" th:each="photo, stat : ${photos}" th:attr="data-gallery-src=@{/photos/{id}(id=${photo.id})}" type="button">
-                <img th:src="@{/photos/{id}(id=${photo.id})}" th:alt="${photo.originalFilename}"
-                     width="320" height="320" decoding="async"
-                     th:attr="loading=${stat.index < 8 ? 'eager' : 'lazy'},fetchpriority=${stat.index < 4 ? 'high' : 'auto'}">
-            </button>
+            <div class="gallery-item" th:each="photo, stat : ${photos}">
+                <button class="gallery-button" th:attr="data-gallery-src=@{/photos/{id}(id=${photo.id})},data-gallery-download=@{/photos/{id}/download(id=${photo.id})}" type="button">
+                    <img th:src="@{/photos/{id}(id=${photo.id})}" th:alt="${photo.originalFilename}"
+                         width="320" height="320" decoding="async"
+                         th:attr="loading=${stat.index < 8 ? 'eager' : 'lazy'},fetchpriority=${stat.index < 4 ? 'high' : 'auto'}">
+                </button>
+                <a class="download-button gallery-download" th:href="@{/photos/{id}/download(id=${photo.id})}" download>Download</a>
+            </div>
         </div>
     </section>
 
@@ -43,7 +46,7 @@
                 <button class="icon-button" type="button" data-upload-dialog-close aria-label="Close">&times;</button>
             </div>
             <form class="upload-choice-form" method="post" enctype="multipart/form-data" data-upload-form data-upload-choice-form
-                  th:action="@{/clubs/{slug}/dates/{date}/upload(slug=${club.slug},date=${nightDate})}"
+                  action="#" th:attr="action=@{/clubs/{slug}/dates/{date}/upload(slug=${club.slug},date=${nightDate})}"
                   th:data-upload-success-url="@{/clubs/{slug}/dates/{date}(slug=${club.slug},date=${nightDate})}"
                   th:data-upload-error-url="@{/clubs/{slug}/dates/{date}(slug=${club.slug},date=${nightDate})}"
                   th:data-upload-max-files="${maxUploadCount}"
@@ -76,6 +79,7 @@
 </main>
 <div class="lightbox" data-lightbox aria-hidden="true">
     <button class="close" type="button" data-lightbox-close aria-label="Close">&times;</button>
+    <a class="lightbox-download" href="#" download data-lightbox-download hidden>Download</a>
     <button class="prev" type="button" data-lightbox-prev aria-label="Previous">‹</button>
     <img data-lightbox-image alt="" decoding="async">
     <button class="next" type="button" data-lightbox-next aria-label="Next">›</button>

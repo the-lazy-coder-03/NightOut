@@ -322,11 +322,18 @@ class PrivateEventFlowTest {
                         .with(auth(creator, "ROLE_USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/private-event-photos/" + photo.getId())))
+                .andExpect(content().string(containsString("/private-event-photos/" + photo.getId() + "/download")))
                 .andExpect(content().string(containsString("party.jpg")));
 
         mockMvc.perform(get("/private-event-photos/{id}", photo.getId())
                         .with(auth(creator, "ROLE_USER")))
                 .andExpect(status().isOk())
+                .andExpect(content().contentType("image/jpeg"));
+
+        mockMvc.perform(get("/private-event-photos/{id}/download", photo.getId())
+                        .with(auth(creator, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", containsString("attachment")))
                 .andExpect(content().contentType("image/jpeg"));
     }
 

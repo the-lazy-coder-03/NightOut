@@ -527,6 +527,11 @@ button[disabled] {
     gap: 8px;
 }
 
+.gallery-item {
+    position: relative;
+    min-width: 0;
+}
+
 .gallery-button {
     display: block;
     width: 100%;
@@ -544,6 +549,37 @@ button[disabled] {
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+.download-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid rgba(247, 244, 255, 0.28);
+    border-radius: 8px;
+    background: rgba(7, 20, 17, 0.82);
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    touch-action: manipulation;
+}
+
+.download-button:hover,
+.download-button:focus-visible {
+    border-color: var(--teal-dark);
+    outline: none;
+}
+
+.gallery-download {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 2;
 }
 
 .lightbox {
@@ -587,6 +623,34 @@ button[disabled] {
 .lightbox .close {
     top: max(18px, env(safe-area-inset-top));
     right: max(18px, env(safe-area-inset-right));
+}
+
+.lightbox-download {
+    position: fixed;
+    top: max(18px, env(safe-area-inset-top));
+    left: max(18px, env(safe-area-inset-left));
+    z-index: 51;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.lightbox-download[hidden] {
+    display: none;
+}
+
+.lightbox-download:hover,
+.lightbox-download:focus-visible {
+    border-color: var(--teal-dark);
+    outline: none;
 }
 
 .lightbox .prev {
@@ -661,6 +725,17 @@ button[disabled] {
 
 .upload-choice-button {
     min-height: 56px;
+}
+
+.photo-card-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.photo-card-actions form {
+    display: grid;
+    margin: 0;
 }
 
 .visually-hidden {

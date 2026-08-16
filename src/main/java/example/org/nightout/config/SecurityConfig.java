@@ -39,6 +39,8 @@ public class SecurityConfig {
                                 "/login/oauth2/**",
                                 "/css/**",
                                 "/js/**",
+                                "/favicon.ico",
+                                "/favicon.svg",
                                 "/error"
                         ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")

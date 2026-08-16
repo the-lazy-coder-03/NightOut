@@ -7,6 +7,7 @@ import example.org.nightout.storage.StorageResource;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,19 +28,31 @@ public class PhotoController {
 
     @GetMapping("/photos/{photoId}")
     public ResponseEntity<Resource> photo(@PathVariable Long photoId) {
+        return photoResponse(photoId, false);
+    }
+
+    @GetMapping("/photos/{photoId}/download")
+    public ResponseEntity<Resource> download(@PathVariable Long photoId) {
+        return photoResponse(photoId, true);
+    }
+
+    private ResponseEntity<Resource> photoResponse(Long photoId, boolean download) {
         Photo photo = photoService.publicPhoto(photoId);
         StorageResource stored = photoService.retrieve(photo);
         CacheControl cacheControl = photo.getOptimizationStatus() == PhotoOptimizationStatus.COMPLETE
                 ? CacheControl.maxAge(Duration.ofDays(7)).cachePublic()
                 : CacheControl.noCache().cachePublic();
         long lastModified = photo.getOptimizedAt() == null ? photo.getUploadedAt().toEpochMilli() : photo.getOptimizedAt().toEpochMilli();
+        ContentDisposition contentDisposition = (download ? ContentDisposition.attachment() : ContentDisposition.inline())
+                .filename(photo.getSafeFilename())
+                .build();
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(photo.getMimeType()))
                 .contentLength(stored.contentLength())
                 .cacheControl(cacheControl)
                 .eTag("\"photo-" + photo.getId() + "-" + photo.getFileSize() + "-" + photo.getOptimizationStatus() + "\"")
                 .lastModified(lastModified)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + photo.getSafeFilename() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
                 .body(stored.resource());
     }
 }

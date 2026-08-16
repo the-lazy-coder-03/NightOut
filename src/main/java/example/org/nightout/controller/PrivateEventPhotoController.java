@@ -7,6 +7,7 @@ import example.org.nightout.storage.StorageResource;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,15 +27,27 @@ public class PrivateEventPhotoController {
 
     @GetMapping("/private-event-photos/{photoId}")
     public ResponseEntity<Resource> photo(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable Long photoId) {
+        return photoResponse(user, photoId, false);
+    }
+
+    @GetMapping("/private-event-photos/{photoId}/download")
+    public ResponseEntity<Resource> download(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable Long photoId) {
+        return photoResponse(user, photoId, true);
+    }
+
+    private ResponseEntity<Resource> photoResponse(AuthenticatedUser user, Long photoId, boolean download) {
         PrivateEventPhoto photo = privateEventPhotoService.privatePhoto(user, photoId);
         StorageResource stored = privateEventPhotoService.retrieve(photo);
+        ContentDisposition contentDisposition = (download ? ContentDisposition.attachment() : ContentDisposition.inline())
+                .filename(photo.getSafeFilename())
+                .build();
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(photo.getMimeType()))
                 .contentLength(stored.contentLength())
                 .cacheControl(CacheControl.noCache().cachePrivate())
                 .eTag("\"private-event-photo-" + photo.getId() + "-" + photo.getFileSize() + "\"")
                 .lastModified(photo.getUploadedAt().toEpochMilli())
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + photo.getSafeFilename() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
                 .body(stored.resource());
     }
 }

@@ -2,6 +2,7 @@ package example.org.nightout.controller;
 
 import example.org.nightout.entity.Club;
 import example.org.nightout.entity.NightEvent;
+import example.org.nightout.entity.Photo;
 import example.org.nightout.exception.BusinessRuleException;
 import example.org.nightout.service.AdminQueryService;
 import example.org.nightout.service.ClubService;
@@ -9,8 +10,13 @@ import example.org.nightout.service.EventService;
 import example.org.nightout.service.PhotoService;
 import example.org.nightout.service.QrCodeService;
 import example.org.nightout.service.UserManagementService;
+import example.org.nightout.storage.StorageResource;
 
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -137,6 +143,11 @@ public class AdminController {
         return "redirect:/admin";
     }
 
+    @GetMapping("/admin/photos/{photoId}/download")
+    public ResponseEntity<Resource> downloadPhoto(@PathVariable Long photoId) {
+        return downloadablePhoto(photoService.requirePhoto(photoId));
+    }
+
     @PostMapping("/admin/photos/delete-all")
     public String deleteAllPhotos(RedirectAttributes redirectAttributes) {
         PhotoService.PhotoDeleteResult result = photoService.deleteAllPhotos();
@@ -177,5 +188,18 @@ public class AdminController {
 
     private static String plural(int count) {
         return count == 1 ? "" : "s";
+    }
+
+    private ResponseEntity<Resource> downloadablePhoto(Photo photo) {
+        StorageResource stored = photoService.retrieve(photo);
+        ContentDisposition contentDisposition = ContentDisposition.attachment()
+                .filename(photo.getSafeFilename())
+                .build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(photo.getMimeType()))
+                .contentLength(stored.contentLength())
+                .cacheControl(CacheControl.noCache().cachePrivate())
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                .body(stored.resource());
     }
 }

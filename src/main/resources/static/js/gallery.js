@@ -1,12 +1,20 @@
 const buttons = Array.from(document.querySelectorAll("[data-gallery-src]"));
 const lightbox = document.querySelector("[data-lightbox]");
 const lightboxImage = document.querySelector("[data-lightbox-image]");
+const lightboxDownload = document.querySelector("[data-lightbox-download]");
 let activeIndex = 0;
 
 function showPhoto(index) {
     if (!lightbox || !lightboxImage || buttons.length === 0) return;
     activeIndex = (index + buttons.length) % buttons.length;
-    lightboxImage.src = buttons[activeIndex].dataset.gallerySrc;
+    const activeButton = buttons[activeIndex];
+    lightboxImage.src = activeButton.dataset.gallerySrc;
+    if (lightboxDownload && activeButton.dataset.galleryDownload) {
+        lightboxDownload.href = activeButton.dataset.galleryDownload;
+        lightboxDownload.hidden = false;
+    } else if (lightboxDownload) {
+        lightboxDownload.hidden = true;
+    }
     lightbox.classList.add("open");
 }
 
