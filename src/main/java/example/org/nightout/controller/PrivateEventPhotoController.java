@@ -15,6 +15,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import java.util.List;
 
 @Controller
 public class PrivateEventPhotoController {
@@ -23,6 +27,16 @@ public class PrivateEventPhotoController {
 
     public PrivateEventPhotoController(PrivateEventPhotoService privateEventPhotoService) {
         this.privateEventPhotoService = privateEventPhotoService;
+    }
+
+    @GetMapping("/private-event-photos/download")
+    public ResponseEntity<StreamingResponseBody> downloadSelected(@AuthenticationPrincipal AuthenticatedUser user,
+                                                                  @RequestParam(name = "photoIds", required = false) List<Long> photoIds) {
+        List<PhotoArchive.Entry> entries = PhotoArchive.selectedIds(photoIds).stream()
+                .map(photoId -> privateEventPhotoService.privatePhoto(user, photoId))
+                .map(photo -> new PhotoArchive.Entry(photo.getSafeFilename(), privateEventPhotoService.retrieve(photo).resource()))
+                .toList();
+        return PhotoArchive.zip("private-event-photos.zip", entries);
     }
 
     @GetMapping("/private-event-photos/{photoId}")

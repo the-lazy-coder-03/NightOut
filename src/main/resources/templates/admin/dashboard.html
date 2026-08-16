@@ -133,13 +133,26 @@
             </form>
         </div>
         <div th:if="${#lists.isEmpty(photos)}" class="empty">No photos uploaded yet.</div>
+        <div class="gallery-actions" th:if="${!#lists.isEmpty(photos)}">
+            <span class="selection-status" data-selection-count>0 selected</span>
+            <div class="gallery-bulk-actions">
+                <button class="button secondary" type="button" data-bulk-clear disabled>Clear</button>
+                <button class="button" type="button" th:attr="data-bulk-download-url=@{/admin/photos/download}" data-bulk-save disabled>Save Selected</button>
+            </div>
+        </div>
         <div class="table-wrap" th:if="${!#lists.isEmpty(photos)}">
             <table>
                 <thead>
-                <tr><th>Preview</th><th>Club</th><th>Night</th><th>File</th><th>Uploaded</th><th>Action</th></tr>
+                <tr><th>Select</th><th>Preview</th><th>Club</th><th>Night</th><th>File</th><th>Uploaded</th><th>Action</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="photo : ${photos}">
+                    <td>
+                        <label class="table-photo-select">
+                            <input type="checkbox" th:value="${photo.id}" th:attr="data-save-url=@{/admin/photos/{id}/download(id=${photo.id})},data-share-url=@{/admin/photos/{id}/download(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-select>
+                            <span>Select</span>
+                        </label>
+                    </td>
                     <td><img th:src="@{/photos/{id}(id=${photo.id})}" alt="" loading="lazy" style="width:64px;height:64px;object-fit:cover;border-radius:8px"></td>
                     <td th:text="${photo.event.club.name}">HALO</td>
                     <td th:text="${photo.event.eventName}">Saturday</td>

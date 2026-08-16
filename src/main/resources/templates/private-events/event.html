@@ -35,6 +35,13 @@
             <button class="button" type="button" data-upload-dialog-open>Upload Photos</button>
         </div>
         <div th:if="${#lists.isEmpty(photos)}" class="empty">No photos have been uploaded for this private event yet.</div>
+        <div class="gallery-actions" th:if="${!#lists.isEmpty(photos)}">
+            <span class="selection-status" data-selection-count>0 selected</span>
+            <div class="gallery-bulk-actions">
+                <button class="button secondary" type="button" data-bulk-clear disabled>Clear</button>
+                <button class="button" type="button" th:attr="data-bulk-download-url=@{/private-event-photos/download}" data-bulk-save disabled>Save Selected</button>
+            </div>
+        </div>
         <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
             <div class="gallery-item" th:each="photo, stat : ${photos}">
                 <button class="gallery-button" th:attr="data-gallery-src=@{/private-event-photos/{id}(id=${photo.id})},data-gallery-download=@{/private-event-photos/{id}/download(id=${photo.id})},data-gallery-share=@{/private-event-photos/{id}(id=${photo.id})},data-gallery-filename=${photo.safeFilename}" type="button">
@@ -42,6 +49,10 @@
                          width="320" height="320" decoding="async"
                          th:attr="loading=${stat.index < 8 ? 'eager' : 'lazy'},fetchpriority=${stat.index < 4 ? 'high' : 'auto'}">
                 </button>
+                <label class="photo-select">
+                    <input type="checkbox" th:value="${photo.id}" th:attr="data-save-url=@{/private-event-photos/{id}/download(id=${photo.id})},data-share-url=@{/private-event-photos/{id}(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-select>
+                    <span>Select</span>
+                </label>
                 <a class="download-button gallery-download" th:href="@{/private-event-photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/private-event-photos/{id}/download(id=${photo.id})},data-share-url=@{/private-event-photos/{id}(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save>Save</a>
             </div>
         </div>

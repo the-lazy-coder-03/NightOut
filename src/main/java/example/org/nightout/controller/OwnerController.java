@@ -25,10 +25,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Controller
 public class OwnerController {
@@ -101,6 +103,17 @@ public class OwnerController {
         Photo photo = photoService.requirePhoto(photoId);
         userManagementService.requireCanManageClub(user, photo.getEvent().getClub().getId());
         return downloadablePhoto(photo);
+    }
+
+    @GetMapping("/owner/photos/download")
+    public ResponseEntity<StreamingResponseBody> downloadSelectedPhotos(@AuthenticationPrincipal AuthenticatedUser user,
+                                                                        @RequestParam(name = "photoIds", required = false) List<Long> photoIds) {
+        List<PhotoArchive.Entry> entries = PhotoArchive.selectedIds(photoIds).stream()
+                .map(photoService::requirePhoto)
+                .peek(photo -> userManagementService.requireCanManageClub(user, photo.getEvent().getClub().getId()))
+                .map(photo -> new PhotoArchive.Entry(photo.getSafeFilename(), photoService.retrieve(photo).resource()))
+                .toList();
+        return PhotoArchive.zip("nightout-photos.zip", entries);
     }
 
     @GetMapping("/owner/clubs/{clubId}/qr.png")

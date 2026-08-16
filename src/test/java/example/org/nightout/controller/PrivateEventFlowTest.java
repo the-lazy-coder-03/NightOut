@@ -40,12 +40,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -324,6 +326,10 @@ class PrivateEventFlowTest {
                 .andExpect(content().string(containsString("/private-event-photos/" + photo.getId())))
                 .andExpect(content().string(containsString("/private-event-photos/" + photo.getId() + "/download")))
                 .andExpect(content().string(containsString("data-gallery-share=\"/private-event-photos/" + photo.getId() + "\"")))
+                .andExpect(content().string(containsString("data-bulk-save")))
+                .andExpect(content().string(containsString("data-bulk-download-url=\"/private-event-photos/download\"")))
+                .andExpect(content().string(containsString("data-photo-select")))
+                .andExpect(content().string(containsString("value=\"" + photo.getId() + "\"")))
                 .andExpect(content().string(containsString("data-share-url=\"/private-event-photos/" + photo.getId() + "\"")))
                 .andExpect(content().string(containsString("/js/photo-save.js")))
                 .andExpect(content().string(containsString("party.jpg")));
@@ -338,6 +344,17 @@ class PrivateEventFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Disposition", containsString("attachment")))
                 .andExpect(content().contentType("image/jpeg"));
+
+        MvcResult archiveResult = mockMvc.perform(get("/private-event-photos/download")
+                        .param("photoIds", String.valueOf(photo.getId()))
+                        .with(auth(creator, "ROLE_USER")))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(archiveResult))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/zip"))
+                .andExpect(header().string("Content-Disposition", containsString("private-event-photos.zip")));
     }
 
     @Test

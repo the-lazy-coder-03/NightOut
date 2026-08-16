@@ -23,6 +23,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
@@ -33,9 +34,11 @@ import java.util.List;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -86,6 +89,9 @@ class OwnerPhotoDownloadTest {
                         .with(auth(owner)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("href=\"/owner/photos/" + ownedPhoto.getId() + "/download\"")))
+                .andExpect(content().string(containsString("data-bulk-save")))
+                .andExpect(content().string(containsString("data-bulk-download-url=\"/owner/photos/download\"")))
+                .andExpect(content().string(containsString("data-photo-select")))
                 .andExpect(content().string(containsString("data-share-url=\"/owner/photos/" + ownedPhoto.getId() + "/download\"")))
                 .andExpect(content().string(containsString("/js/photo-save.js")));
     }
@@ -101,6 +107,23 @@ class OwnerPhotoDownloadTest {
                 .andExpect(content().contentType("image/jpeg"))
                 .andExpect(header().string("Content-Disposition", containsString("attachment")))
                 .andExpect(header().string("Content-Disposition", containsString("owned.jpg")));
+    }
+
+    @Test
+    void ownerCanDownloadSelectedAssignedClubPhotosAsZip() throws Exception {
+        byte[] body = new byte[]{1, 2, 3};
+        when(storageService.retrieve("owned.jpg")).thenReturn(new StorageResource(new ByteArrayResource(body), body.length));
+
+        MvcResult result = mockMvc.perform(get("/owner/photos/download")
+                        .param("photoIds", String.valueOf(ownedPhoto.getId()))
+                        .with(auth(owner)))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(result))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/zip"))
+                .andExpect(header().string("Content-Disposition", containsString("nightout-photos.zip")));
     }
 
     @Test

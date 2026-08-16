@@ -60,9 +60,20 @@
     <section class="section">
         <h2>Uploaded photos</h2>
         <div th:if="${#lists.isEmpty(photos)}" class="empty">No photos uploaded yet.</div>
+        <div class="gallery-actions" th:if="${!#lists.isEmpty(photos)}">
+            <span class="selection-status" data-selection-count>0 selected</span>
+            <div class="gallery-bulk-actions">
+                <button class="button secondary" type="button" data-bulk-clear disabled>Clear</button>
+                <button class="button" type="button" th:attr="data-bulk-download-url=@{/owner/photos/download}" data-bulk-save disabled>Save Selected</button>
+            </div>
+        </div>
         <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
-            <div th:each="photo : ${photos}" class="card">
+            <div th:each="photo : ${photos}" class="card photo-card">
                 <img th:src="@{/photos/{id}(id=${photo.id})}" th:alt="${photo.originalFilename}" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">
+                <label class="photo-select">
+                    <input type="checkbox" th:value="${photo.id}" th:attr="data-save-url=@{/owner/photos/{id}/download(id=${photo.id})},data-share-url=@{/owner/photos/{id}/download(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-select>
+                    <span>Select</span>
+                </label>
                 <p th:text="${photo.event.eventName}">Night</p>
                 <div class="photo-card-actions">
                     <a class="button secondary" th:href="@{/owner/photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/owner/photos/{id}/download(id=${photo.id})},data-share-url=@{/owner/photos/{id}/download(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save>Save</a>

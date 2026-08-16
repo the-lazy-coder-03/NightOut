@@ -534,6 +534,33 @@ button[disabled] {
     gap: 8px;
 }
 
+.gallery-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.gallery-bulk-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.gallery-actions .button {
+    min-height: 40px;
+    padding-inline: 14px;
+}
+
+.selection-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-weight: 800;
+}
+
 .gallery-item {
     position: relative;
     min-width: 0;
@@ -556,6 +583,42 @@ button[disabled] {
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+.photo-select {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 0 10px;
+    border: 1px solid rgba(247, 244, 255, 0.28);
+    border-radius: 8px;
+    background: rgba(7, 20, 17, 0.82);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.photo-select input {
+    margin: 0;
+}
+
+.table-photo-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink);
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.table-photo-select input {
+    margin: 0;
 }
 
 .download-button {
@@ -738,6 +801,10 @@ button[disabled] {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 10px;
+}
+
+.photo-card {
+    position: relative;
 }
 
 .photo-card-actions form {
@@ -1010,6 +1077,28 @@ th {
     .gallery {
         grid-template-columns: repeat(auto-fill, minmax(min(112px, 100%), 1fr));
         gap: 6px;
+    }
+
+    .gallery-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .gallery-bulk-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .gallery-actions .button {
+        width: 100%;
+        padding-inline: 10px;
+    }
+
+    .photo-select {
+        min-height: 34px;
+        padding-inline: 8px;
+        font-size: 0.72rem;
     }
 
     .lightbox {

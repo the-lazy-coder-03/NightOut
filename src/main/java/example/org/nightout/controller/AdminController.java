@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -146,6 +147,15 @@ public class AdminController {
     @GetMapping("/admin/photos/{photoId}/download")
     public ResponseEntity<Resource> downloadPhoto(@PathVariable Long photoId) {
         return downloadablePhoto(photoService.requirePhoto(photoId));
+    }
+
+    @GetMapping("/admin/photos/download")
+    public ResponseEntity<StreamingResponseBody> downloadSelectedPhotos(@RequestParam(name = "photoIds", required = false) List<Long> photoIds) {
+        List<PhotoArchive.Entry> entries = PhotoArchive.selectedIds(photoIds).stream()
+                .map(photoService::requirePhoto)
+                .map(photo -> new PhotoArchive.Entry(photo.getSafeFilename(), photoService.retrieve(photo).resource()))
+                .toList();
+        return PhotoArchive.zip("nightout-photos.zip", entries);
     }
 
     @PostMapping("/admin/photos/delete-all")

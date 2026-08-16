@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -35,6 +37,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -81,6 +84,9 @@ class AdminPhotoBulkDeleteTest {
                 .andExpect(content().string(containsString("Delete All Photos")))
                 .andExpect(content().string(containsString("action=\"/admin/photos/delete-all\"")))
                 .andExpect(content().string(containsString("href=\"/admin/photos/" + photo.getId() + "/download\"")))
+                .andExpect(content().string(containsString("data-bulk-save")))
+                .andExpect(content().string(containsString("data-bulk-download-url=\"/admin/photos/download\"")))
+                .andExpect(content().string(containsString("data-photo-select")))
                 .andExpect(content().string(containsString("data-share-url=\"/admin/photos/" + photo.getId() + "/download\"")))
                 .andExpect(content().string(containsString("/js/photo-save.js")));
     }
@@ -97,6 +103,24 @@ class AdminPhotoBulkDeleteTest {
                 .andExpect(content().contentType("image/jpeg"))
                 .andExpect(header().string("Content-Disposition", containsString("attachment")))
                 .andExpect(header().string("Content-Disposition", containsString("one.jpg")));
+    }
+
+    @Test
+    void adminCanDownloadSelectedPhotosAsZip() throws Exception {
+        Photo photo = savePhoto("one.jpg");
+        byte[] body = new byte[]{1, 2, 3};
+        when(storageService.retrieve("one.jpg")).thenReturn(new StorageResource(new ByteArrayResource(body), body.length));
+
+        MvcResult result = mockMvc.perform(get("/admin/photos/download")
+                        .param("photoIds", String.valueOf(photo.getId()))
+                        .with(user("admin").roles("ADMIN")))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(result))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/zip"))
+                .andExpect(header().string("Content-Disposition", containsString("nightout-photos.zip")));
     }
 
     @Test
