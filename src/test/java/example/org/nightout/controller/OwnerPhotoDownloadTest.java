@@ -85,7 +85,9 @@ class OwnerPhotoDownloadTest {
         mockMvc.perform(get("/owner/clubs/{clubId}", ownedClub.getId())
                         .with(auth(owner)))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("href=\"/owner/photos/" + ownedPhoto.getId() + "/download\"")));
+                .andExpect(content().string(containsString("href=\"/owner/photos/" + ownedPhoto.getId() + "/download\"")))
+                .andExpect(content().string(containsString("data-share-url=\"/owner/photos/" + ownedPhoto.getId() + "/download\"")))
+                .andExpect(content().string(containsString("/js/photo-save.js")));
     }
 
     @Test

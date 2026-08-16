@@ -10,8 +10,10 @@ function showPhoto(index) {
     const activeButton = buttons[activeIndex];
     lightboxImage.src = activeButton.dataset.gallerySrc;
     if (lightboxDownload && activeButton.dataset.galleryDownload) {
+        const shareUrl = activeButton.dataset.galleryShare || activeButton.dataset.gallerySrc || activeButton.dataset.galleryDownload;
         lightboxDownload.href = activeButton.dataset.galleryDownload;
         lightboxDownload.dataset.saveUrl = activeButton.dataset.galleryDownload;
+        lightboxDownload.dataset.shareUrl = shareUrl;
         lightboxDownload.dataset.saveFilename = activeButton.dataset.galleryFilename || "nightout-photo.jpg";
         lightboxDownload.setAttribute("download", lightboxDownload.dataset.saveFilename);
         lightboxDownload.hidden = false;

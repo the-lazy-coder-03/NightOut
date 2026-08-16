@@ -323,6 +323,9 @@ class PrivateEventFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/private-event-photos/" + photo.getId())))
                 .andExpect(content().string(containsString("/private-event-photos/" + photo.getId() + "/download")))
+                .andExpect(content().string(containsString("data-gallery-share=\"/private-event-photos/" + photo.getId() + "\"")))
+                .andExpect(content().string(containsString("data-share-url=\"/private-event-photos/" + photo.getId() + "\"")))
+                .andExpect(content().string(containsString("/js/photo-save.js")))
                 .andExpect(content().string(containsString("party.jpg")));
 
         mockMvc.perform(get("/private-event-photos/{id}", photo.getId())

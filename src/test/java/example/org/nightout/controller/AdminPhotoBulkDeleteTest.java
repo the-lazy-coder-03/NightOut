@@ -80,7 +80,9 @@ class AdminPhotoBulkDeleteTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Delete All Photos")))
                 .andExpect(content().string(containsString("action=\"/admin/photos/delete-all\"")))
-                .andExpect(content().string(containsString("href=\"/admin/photos/" + photo.getId() + "/download\"")));
+                .andExpect(content().string(containsString("href=\"/admin/photos/" + photo.getId() + "/download\"")))
+                .andExpect(content().string(containsString("data-share-url=\"/admin/photos/" + photo.getId() + "/download\"")))
+                .andExpect(content().string(containsString("/js/photo-save.js")));
     }
 
     @Test

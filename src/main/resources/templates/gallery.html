@@ -26,12 +26,12 @@
         <div th:if="${#lists.isEmpty(photos)}" class="empty">No photos have been uploaded for this night yet.</div>
         <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
             <div class="gallery-item" th:each="photo, stat : ${photos}">
-                <button class="gallery-button" th:attr="data-gallery-src=@{/photos/{id}(id=${photo.id})},data-gallery-download=@{/photos/{id}/download(id=${photo.id})},data-gallery-filename=${photo.safeFilename}" type="button">
+                <button class="gallery-button" th:attr="data-gallery-src=@{/photos/{id}(id=${photo.id})},data-gallery-download=@{/photos/{id}/download(id=${photo.id})},data-gallery-share=@{/photos/{id}(id=${photo.id})},data-gallery-filename=${photo.safeFilename}" type="button">
                     <img th:src="@{/photos/{id}(id=${photo.id})}" th:alt="${photo.originalFilename}"
                          width="320" height="320" decoding="async"
                          th:attr="loading=${stat.index < 8 ? 'eager' : 'lazy'},fetchpriority=${stat.index < 4 ? 'high' : 'auto'}">
                 </button>
-                <a class="download-button gallery-download" th:href="@{/photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/photos/{id}/download(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save>Save</a>
+                <a class="download-button gallery-download" th:href="@{/photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/photos/{id}/download(id=${photo.id})},data-share-url=@{/photos/{id}(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save>Save</a>
             </div>
         </div>
     </section>

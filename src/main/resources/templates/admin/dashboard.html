@@ -146,7 +146,7 @@
                     <td th:text="${photo.originalFilename}">photo.jpg</td>
                     <td th:text="${#temporals.format(photo.uploadedAt, 'yyyy-MM-dd HH:mm')}">2026-08-08</td>
                     <td class="actions">
-                        <a class="button secondary" th:href="@{/admin/photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/admin/photos/{id}/download(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save>Save</a>
+                        <a class="button secondary" th:href="@{/admin/photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/admin/photos/{id}/download(id=${photo.id})},data-share-url=@{/admin/photos/{id}/download(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save>Save</a>
                         <form method="post" th:action="@{/admin/photos/{id}/remove(id=${photo.id})}">
                             <button class="button danger" type="submit">Remove</button>
                         </form>
