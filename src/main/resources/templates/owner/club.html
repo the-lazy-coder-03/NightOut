@@ -65,7 +65,7 @@
                 <img th:src="@{/photos/{id}(id=${photo.id})}" th:alt="${photo.originalFilename}" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">
                 <p th:text="${photo.event.eventName}">Night</p>
                 <div class="photo-card-actions">
-                    <a class="button secondary" th:href="@{/owner/photos/{id}/download(id=${photo.id})}" download>Download</a>
+                    <a class="button secondary" th:href="@{/owner/photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/owner/photos/{id}/download(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save>Save</a>
                     <form method="post" th:action="@{/owner/photos/{id}/remove(id=${photo.id})}">
                         <button class="button danger" type="submit">Remove</button>
                     </form>
@@ -74,5 +74,6 @@
         </div>
     </section>
 </main>
+<script src="/js/photo-save.js"></script>
 </body>
 </html>

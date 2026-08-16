@@ -462,6 +462,13 @@ button[disabled] {
     opacity: 0.55;
 }
 
+.button[aria-busy="true"],
+.download-button[aria-busy="true"],
+.lightbox-download[aria-busy="true"] {
+    opacity: 0.72;
+    pointer-events: none;
+}
+
 .section {
     margin-top: 34px;
 }

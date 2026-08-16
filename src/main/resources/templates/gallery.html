@@ -26,23 +26,24 @@
         <div th:if="${#lists.isEmpty(photos)}" class="empty">No photos have been uploaded for this night yet.</div>
         <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
             <div class="gallery-item" th:each="photo, stat : ${photos}">
-                <button class="gallery-button" th:attr="data-gallery-src=@{/photos/{id}(id=${photo.id})},data-gallery-download=@{/photos/{id}/download(id=${photo.id})}" type="button">
+                <button class="gallery-button" th:attr="data-gallery-src=@{/photos/{id}(id=${photo.id})},data-gallery-download=@{/photos/{id}/download(id=${photo.id})},data-gallery-filename=${photo.safeFilename}" type="button">
                     <img th:src="@{/photos/{id}(id=${photo.id})}" th:alt="${photo.originalFilename}"
                          width="320" height="320" decoding="async"
                          th:attr="loading=${stat.index < 8 ? 'eager' : 'lazy'},fetchpriority=${stat.index < 4 ? 'high' : 'auto'}">
                 </button>
-                <a class="download-button gallery-download" th:href="@{/photos/{id}/download(id=${photo.id})}" download>Download</a>
+                <a class="download-button gallery-download" th:href="@{/photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/photos/{id}/download(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save>Save</a>
             </div>
         </div>
     </section>
 </main>
 <div class="lightbox" data-lightbox aria-hidden="true">
     <button class="close" type="button" data-lightbox-close aria-label="Close">&times;</button>
-    <a class="lightbox-download" href="#" download data-lightbox-download hidden>Download</a>
+    <a class="lightbox-download" href="#" download data-lightbox-download data-photo-save hidden>Save</a>
     <button class="prev" type="button" data-lightbox-prev aria-label="Previous">‹</button>
     <img data-lightbox-image alt="" decoding="async">
     <button class="next" type="button" data-lightbox-next aria-label="Next">›</button>
 </div>
 <script src="/js/gallery.js"></script>
+<script src="/js/photo-save.js"></script>
 </body>
 </html>

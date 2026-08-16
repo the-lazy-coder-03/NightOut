@@ -11,6 +11,9 @@ function showPhoto(index) {
     lightboxImage.src = activeButton.dataset.gallerySrc;
     if (lightboxDownload && activeButton.dataset.galleryDownload) {
         lightboxDownload.href = activeButton.dataset.galleryDownload;
+        lightboxDownload.dataset.saveUrl = activeButton.dataset.galleryDownload;
+        lightboxDownload.dataset.saveFilename = activeButton.dataset.galleryFilename || "nightout-photo.jpg";
+        lightboxDownload.setAttribute("download", lightboxDownload.dataset.saveFilename);
         lightboxDownload.hidden = false;
     } else if (lightboxDownload) {
         lightboxDownload.hidden = true;
