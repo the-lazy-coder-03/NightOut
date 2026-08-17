@@ -117,13 +117,15 @@ class PrivateEventFlowTest {
     }
 
     @Test
-    void createPageOnlyAsksForNameAndPassword() throws Exception {
+    void createPageShowsGuestSharingOption() throws Exception {
         mockMvc.perform(get("/private-events/create")
                         .with(auth(creator, "ROLE_USER")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("name=\"eventName\"")))
                 .andExpect(content().string(containsString("name=\"password\"")))
                 .andExpect(content().string(containsString("name=\"password\" type=\"text\"")))
+                .andExpect(content().string(containsString("name=\"guestSharingAllowed\"")))
+                .andExpect(content().string(containsString("type=\"checkbox\"")))
                 .andExpect(content().string(not(containsString("type=\"password\""))))
                 .andExpect(content().string(not(containsString("name=\"location\""))))
                 .andExpect(content().string(not(containsString("name=\"eventDate\""))))
@@ -146,6 +148,7 @@ class PrivateEventFlowTest {
         assertThat(event.getJoinCode()).matches("\\d{5}");
         assertThat(event.getInviteToken()).isNotBlank();
         assertThat(event.getSharePassword()).isEqualTo("share-this-password");
+        assertThat(event.isGuestSharingAllowed()).isFalse();
         assertThat(result.getFlashMap().containsKey("successInviteLink")).isFalse();
         assertThat(event.getEventDate()).isEqualTo(LocalDate.of(2026, 8, 12));
         assertThat(event.getStartTime()).isEqualTo(LocalTime.MIDNIGHT);
@@ -163,11 +166,27 @@ class PrivateEventFlowTest {
     }
 
     @Test
+    void creatorCanAllowGuestsToShareWhenCreatingPrivateEvent() throws Exception {
+        mockMvc.perform(post("/private-events")
+                        .with(auth(creator, "ROLE_USER"))
+                        .with(csrf())
+                        .param("eventName", "Shared Table")
+                        .param("password", "share-this-password")
+                        .param("guestSharingAllowed", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/private-events/*"));
+
+        PrivateEvent event = privateEventRepository.findAll().getFirst();
+        assertThat(event.isGuestSharingAllowed()).isTrue();
+    }
+
+    @Test
     void creatorAlwaysSeesInviteDetailsAtTopWithoutMiddleBox() throws Exception {
         PrivateEvent event = privateEventService.create(
                 principal(creator, "ROLE_USER"),
                 "Invite Display",
-                "correct-password"
+                "correct-password",
+                false
         );
 
         mockMvc.perform(get("/private-events/{code}", event.getJoinCode())
@@ -187,7 +206,8 @@ class PrivateEventFlowTest {
         PrivateEvent event = privateEventService.create(
                 principal(creator, "ROLE_USER"),
                 "Guest View",
-                "correct-password"
+                "correct-password",
+                false
         );
         privateEventService.join(principal(guest, "ROLE_USER"), event.getJoinCode(), "correct-password");
 
@@ -197,6 +217,39 @@ class PrivateEventFlowTest {
                 .andExpect(content().string(not(containsString("class=\"private-share\""))))
                 .andExpect(content().string(not(containsString("http://localhost:8090/private-events/invite/" + event.getInviteToken()))))
                 .andExpect(content().string(not(containsString("Password: correct-password"))));
+
+        mockMvc.perform(get("/private-events")
+                        .with(auth(guest, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Guest View")))
+                .andExpect(content().string(not(containsString("Code " + event.getJoinCode()))))
+                .andExpect(content().string(not(containsString("Password correct-password"))));
+    }
+
+    @Test
+    void guestSeesInviteDetailsWhenCreatorAllowsGuestSharing() throws Exception {
+        PrivateEvent event = privateEventService.create(
+                principal(creator, "ROLE_USER"),
+                "Shared Guest View",
+                "correct-password",
+                true
+        );
+        privateEventService.join(principal(guest, "ROLE_USER"), event.getJoinCode(), "correct-password");
+
+        mockMvc.perform(get("/private-events/{code}", event.getJoinCode())
+                        .with(auth(guest, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"private-share\"")))
+                .andExpect(content().string(containsString("http://localhost:8090/private-events/invite/" + event.getInviteToken())))
+                .andExpect(content().string(containsString("Event code: " + event.getJoinCode())))
+                .andExpect(content().string(containsString("Password: correct-password")));
+
+        mockMvc.perform(get("/private-events")
+                        .with(auth(guest, "ROLE_USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Shared Guest View")))
+                .andExpect(content().string(containsString("Code " + event.getJoinCode())))
+                .andExpect(content().string(containsString("Password correct-password")));
     }
 
     @Test
@@ -204,7 +257,8 @@ class PrivateEventFlowTest {
         PrivateEvent event = privateEventService.create(
                 principal(creator, "ROLE_USER"),
                 "Invite Party",
-                "correct-password"
+                "correct-password",
+                false
         );
 
         mockMvc.perform(get("/private-events/invite/{token}", event.getInviteToken())
@@ -238,7 +292,8 @@ class PrivateEventFlowTest {
         PrivateEvent event = privateEventService.create(
                 principal(creator, "ROLE_USER"),
                 "Friends Only",
-                "correct-password"
+                "correct-password",
+                false
         );
 
         mockMvc.perform(get("/private-events/{code}", event.getJoinCode())
@@ -305,7 +360,8 @@ class PrivateEventFlowTest {
         PrivateEvent event = privateEventService.create(
                 principal(creator, "ROLE_USER"),
                 "Photo Party",
-                "correct-password"
+                "correct-password",
+                false
         );
 
         mockMvc.perform(multipart("/private-events/{code}/upload", event.getJoinCode())

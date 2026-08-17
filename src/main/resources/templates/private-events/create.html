@@ -28,6 +28,7 @@
     <form class="card form-grid" method="post" th:action="@{/private-events}">
         <label>Event name <input name="eventName" autocomplete="off" required></label>
         <label>Password <input name="password" type="text" minlength="8" autocomplete="off" required></label>
+        <label>Allow guests to share link/password <input type="checkbox" name="guestSharingAllowed" value="true"></label>
         <button class="button" type="submit">Create Event</button>
     </form>
 </main>

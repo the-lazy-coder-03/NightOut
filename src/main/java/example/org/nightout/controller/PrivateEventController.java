@@ -51,9 +51,10 @@ public class PrivateEventController {
     public String create(@AuthenticationPrincipal AuthenticatedUser user,
                          @RequestParam String eventName,
                          @RequestParam String password,
+                         @RequestParam(defaultValue = "false") boolean guestSharingAllowed,
                          RedirectAttributes redirectAttributes) {
         try {
-            PrivateEvent event = privateEventService.create(user, eventName, password);
+            PrivateEvent event = privateEventService.create(user, eventName, password, guestSharingAllowed);
             return "redirect:/private-events/" + event.getJoinCode();
         } catch (BusinessRuleException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -106,7 +107,7 @@ public class PrivateEventController {
             return "private-events/join";
         }
         model.addAttribute("photos", privateEventPhotoService.photosFor(user, joinCode));
-        if (view.creator() && view.event().getInviteToken() != null) {
+        if (canShareInvite(view) && view.event().getInviteToken() != null) {
             model.addAttribute("shareInviteLink", inviteLink(view.event()));
         }
         addUploadLimits(model);
@@ -149,6 +150,10 @@ public class PrivateEventController {
 
     private static String eventUrl(String joinCode) {
         return "/private-events/" + joinCode;
+    }
+
+    private static boolean canShareInvite(PrivateEventView view) {
+        return view.creator() || view.event().isGuestSharingAllowed();
     }
 
     private String inviteLink(PrivateEvent event) {

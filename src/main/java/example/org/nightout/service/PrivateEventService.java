@@ -91,7 +91,7 @@ public class PrivateEventService {
     }
 
     @Transactional
-    public PrivateEvent create(AuthenticatedUser principal, String eventName, String password) {
+    public PrivateEvent create(AuthenticatedUser principal, String eventName, String password, boolean guestSharingAllowed) {
         AppUser creator = userManagementService.requireUser(principal.getId());
         LocalDate today = LocalDate.now(clock);
         if (password == null || password.length() < 8) {
@@ -108,6 +108,7 @@ public class PrivateEventService {
         event.setInviteToken(generateInviteToken());
         event.setPasswordHash(passwordEncoder.encode(password));
         event.setSharePassword(password);
+        event.setGuestSharingAllowed(guestSharingAllowed);
         event.setCreatedAt(Instant.now(clock));
 
         PrivateEvent saved = privateEventRepository.save(event);

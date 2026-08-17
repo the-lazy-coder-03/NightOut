@@ -56,6 +56,9 @@ public class PrivateEvent {
     @Column(name = "share_password")
     private String sharePassword;
 
+    @Column(name = "guest_sharing_allowed", nullable = false)
+    private boolean guestSharingAllowed;
+
     @Column(nullable = false)
     private boolean cancelled;
 
@@ -147,6 +150,14 @@ public class PrivateEvent {
 
     public void setSharePassword(String sharePassword) {
         this.sharePassword = sharePassword;
+    }
+
+    public boolean isGuestSharingAllowed() {
+        return guestSharingAllowed;
+    }
+
+    public void setGuestSharingAllowed(boolean guestSharingAllowed) {
+        this.guestSharingAllowed = guestSharingAllowed;
     }
 
     public boolean isCancelled() {
