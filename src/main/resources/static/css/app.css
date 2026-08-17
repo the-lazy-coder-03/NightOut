@@ -530,7 +530,7 @@ button[disabled] {
 
 .gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(130px, 100%), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(max(160px, calc((100% - 40px) / 6)), 100%), 1fr));
     gap: 8px;
 }
 
