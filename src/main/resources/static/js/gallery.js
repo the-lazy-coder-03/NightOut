@@ -24,7 +24,17 @@ function showPhoto(index) {
 }
 
 buttons.forEach((button, index) => {
-    button.addEventListener("click", () => showPhoto(index));
+    button.addEventListener("click", () => {
+        if (document.body.classList.contains("selection-mode")) {
+            const checkbox = button.closest(".gallery-item, .photo-card")?.querySelector("[data-photo-select]");
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event("change", {bubbles: true}));
+                return;
+            }
+        }
+        showPhoto(index);
+    });
 });
 
 document.querySelectorAll("[data-lightbox-close]").forEach((button) => {

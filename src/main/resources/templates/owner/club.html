@@ -66,6 +66,7 @@
                 <button class="button secondary" type="button" data-bulk-clear disabled>Clear</button>
                 <button class="button" type="button" th:attr="data-bulk-download-url=@{/owner/photos/download}" data-bulk-save disabled>Save Selected</button>
             </div>
+            <button class="button secondary" type="button" data-selection-toggle aria-pressed="false">Select</button>
         </div>
         <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
             <div th:each="photo : ${photos}" class="card photo-card">
@@ -76,7 +77,14 @@
                 </label>
                 <p th:text="${photo.event.eventName}">Night</p>
                 <div class="photo-card-actions">
-                    <a class="button secondary" th:href="@{/owner/photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/owner/photos/{id}/download(id=${photo.id})},data-share-url=@{/owner/photos/{id}/download(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save>Save</a>
+                    <a class="button secondary icon-only-button" th:href="@{/owner/photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/owner/photos/{id}/download(id=${photo.id})},data-share-url=@{/owner/photos/{id}/download(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save aria-label="Download photo" title="Download photo">
+                        <svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3v12"></path>
+                            <path d="m7 10 5 5 5-5"></path>
+                            <path d="M5 21h14"></path>
+                        </svg>
+                        <span class="visually-hidden">Download photo</span>
+                    </a>
                     <form method="post" th:action="@{/owner/photos/{id}/remove(id=${photo.id})}">
                         <button class="button danger" type="submit">Remove</button>
                     </form>

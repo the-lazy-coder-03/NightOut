@@ -4,6 +4,7 @@
     const bulkSaveButtons = Array.from(document.querySelectorAll("[data-bulk-save]"));
     const bulkClearButtons = Array.from(document.querySelectorAll("[data-bulk-clear]"));
     const selectionCounts = Array.from(document.querySelectorAll("[data-selection-count]"));
+    const selectionToggleButtons = Array.from(document.querySelectorAll("[data-selection-toggle]"));
 
     function supportsFileShare() {
         return typeof navigator.share === "function"
@@ -68,17 +69,55 @@
         return selectInputs.filter((input) => input.checked);
     }
 
+    function selectionItemFor(input) {
+        return input.closest(".gallery-item, .photo-card, tr");
+    }
+
+    function isSelectionMode() {
+        return document.body.classList.contains("selection-mode");
+    }
+
+    function updateSelectedItems() {
+        selectInputs.forEach((input) => {
+            selectionItemFor(input)?.classList.toggle("selected", input.checked);
+        });
+    }
+
+    function clearSelection() {
+        selectInputs.forEach((input) => {
+            input.checked = false;
+        });
+        updateSelectedItems();
+    }
+
+    function setSelectionMode(enabled) {
+        document.body.classList.toggle("selection-mode", enabled);
+        selectionToggleButtons.forEach((button) => {
+            button.textContent = enabled ? "Cancel" : "Select";
+            button.setAttribute("aria-pressed", String(enabled));
+        });
+        if (!enabled) {
+            clearSelection();
+        }
+        updateSelectionState();
+    }
+
     function updateSelectionState() {
+        const selectionMode = isSelectionMode();
         const selectedCount = selectedPhotos().length;
         selectionCounts.forEach((count) => {
             count.textContent = `${selectedCount} selected`;
-        });
-        bulkSaveButtons.forEach((button) => {
-            button.disabled = selectedCount === 0;
+            count.hidden = !selectionMode;
         });
         bulkClearButtons.forEach((button) => {
+            button.hidden = !selectionMode;
             button.disabled = selectedCount === 0;
         });
+        bulkSaveButtons.forEach((button) => {
+            button.hidden = !selectionMode;
+            button.disabled = selectedCount === 0;
+        });
+        updateSelectedItems();
     }
 
     function archiveUrl(button, selected) {
@@ -144,18 +183,20 @@
         input.addEventListener("change", updateSelectionState);
     });
 
+    selectionToggleButtons.forEach((button) => {
+        button.addEventListener("click", () => setSelectionMode(!isSelectionMode()));
+    });
+
     bulkSaveButtons.forEach((button) => {
         button.addEventListener("click", saveSelectedPhotos);
     });
 
     bulkClearButtons.forEach((button) => {
         button.addEventListener("click", () => {
-            selectedPhotos().forEach((input) => {
-                input.checked = false;
-            });
+            clearSelection();
             updateSelectionState();
         });
     });
 
-    updateSelectionState();
+    setSelectionMode(false);
 })();

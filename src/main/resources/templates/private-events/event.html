@@ -41,6 +41,7 @@
                 <button class="button secondary" type="button" data-bulk-clear disabled>Clear</button>
                 <button class="button" type="button" th:attr="data-bulk-download-url=@{/private-event-photos/download}" data-bulk-save disabled>Save Selected</button>
             </div>
+            <button class="button secondary" type="button" data-selection-toggle aria-pressed="false">Select</button>
         </div>
         <div class="gallery" th:if="${!#lists.isEmpty(photos)}">
             <div class="gallery-item" th:each="photo, stat : ${photos}">
@@ -53,7 +54,14 @@
                     <input type="checkbox" th:value="${photo.id}" th:attr="data-save-url=@{/private-event-photos/{id}/download(id=${photo.id})},data-share-url=@{/private-event-photos/{id}(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-select>
                     <span>Select</span>
                 </label>
-                <a class="download-button gallery-download" th:href="@{/private-event-photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/private-event-photos/{id}/download(id=${photo.id})},data-share-url=@{/private-event-photos/{id}(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save>Save</a>
+                <a class="download-button gallery-download" th:href="@{/private-event-photos/{id}/download(id=${photo.id})}" th:attr="download=${photo.safeFilename},data-save-url=@{/private-event-photos/{id}/download(id=${photo.id})},data-share-url=@{/private-event-photos/{id}(id=${photo.id})},data-save-filename=${photo.safeFilename}" data-photo-save aria-label="Download photo" title="Download photo">
+                    <svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 3v12"></path>
+                        <path d="m7 10 5 5 5-5"></path>
+                        <path d="M5 21h14"></path>
+                    </svg>
+                    <span class="visually-hidden">Download photo</span>
+                </a>
             </div>
         </div>
     </section>
@@ -89,7 +97,14 @@
 </main>
 <div class="lightbox" data-lightbox aria-hidden="true">
     <button class="close" type="button" data-lightbox-close aria-label="Close">&times;</button>
-    <a class="lightbox-download" href="#" download data-lightbox-download data-photo-save hidden>Save</a>
+    <a class="lightbox-download" href="#" download data-lightbox-download data-photo-save hidden aria-label="Download photo" title="Download photo">
+        <svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3v12"></path>
+            <path d="m7 10 5 5 5-5"></path>
+            <path d="M5 21h14"></path>
+        </svg>
+        <span class="visually-hidden">Download photo</span>
+    </a>
     <button class="prev" type="button" data-lightbox-prev aria-label="Previous">‹</button>
     <img data-lightbox-image alt="" decoding="async">
     <button class="next" type="button" data-lightbox-next aria-label="Next">›</button>

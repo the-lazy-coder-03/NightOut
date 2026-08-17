@@ -547,6 +547,15 @@ button[disabled] {
     gap: 8px;
 }
 
+body:not(.selection-mode) .gallery-bulk-actions,
+body:not(.selection-mode) .selection-status {
+    display: none;
+}
+
+body:not(.selection-mode) .gallery-actions {
+    justify-content: flex-end;
+}
+
 .gallery-actions .button {
     min-height: 40px;
     padding-inline: 14px;
@@ -588,28 +597,69 @@ button[disabled] {
 .photo-select {
     position: absolute;
     top: 8px;
-    left: 8px;
+    right: 8px;
     z-index: 2;
-    display: inline-flex;
+    display: none;
     align-items: center;
-    gap: 6px;
-    min-height: 36px;
-    padding: 0 10px;
-    border: 1px solid rgba(247, 244, 255, 0.28);
-    border-radius: 8px;
-    background: rgba(7, 20, 17, 0.82);
+    justify-content: center;
+    min-height: 34px;
+    min-width: 34px;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgba(7, 20, 17, 0.36);
     color: #ffffff;
-    font-size: 0.78rem;
-    font-weight: 800;
-    line-height: 1;
+}
+
+.selection-mode .photo-select {
+    display: inline-flex;
 }
 
 .photo-select input {
+    appearance: none;
+    display: grid;
+    place-content: center;
+    width: 24px;
+    height: 24px;
     margin: 0;
+    border: 2px solid #ffffff;
+    border-radius: 999px;
+    background: rgba(7, 20, 17, 0.22);
+    cursor: pointer;
+}
+
+.photo-select input::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    clip-path: polygon(14% 44%, 0 58%, 42% 100%, 100% 22%, 85% 8%, 40% 68%);
+    background: #ffffff;
+    transform: scale(0);
+    transition: transform 0.12s ease;
+}
+
+.photo-select input:checked {
+    border-color: var(--teal-dark);
+    background: var(--teal-dark);
+}
+
+.photo-select input:checked::before {
+    transform: scale(1);
+}
+
+.photo-select span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 .table-photo-select {
-    display: inline-flex;
+    display: none;
     align-items: center;
     gap: 8px;
     color: var(--ink);
@@ -617,8 +667,36 @@ button[disabled] {
     font-weight: 800;
 }
 
+.selection-mode .table-photo-select {
+    display: inline-flex;
+}
+
 .table-photo-select input {
     margin: 0;
+}
+
+.selection-mode .gallery-button {
+    cursor: pointer;
+}
+
+.gallery-item.selected .gallery-button,
+.photo-card.selected img {
+    outline: 3px solid var(--teal-dark);
+    outline-offset: -3px;
+}
+
+.gallery-item.selected::after,
+.photo-card.selected::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 8px;
+    background: rgba(24, 169, 153, 0.18);
+}
+
+.selection-mode tr.selected {
+    background: rgba(24, 169, 153, 0.12);
 }
 
 .download-button {
@@ -626,17 +704,33 @@ button[disabled] {
     align-items: center;
     justify-content: center;
     min-height: 40px;
-    padding: 0 12px;
+    min-width: 40px;
+    padding: 0;
     border: 1px solid rgba(247, 244, 255, 0.28);
     border-radius: 8px;
     background: rgba(7, 20, 17, 0.82);
     color: #ffffff;
-    font-size: 0.82rem;
     font-weight: 800;
     line-height: 1.2;
     text-align: center;
     text-decoration: none;
     touch-action: manipulation;
+}
+
+.download-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.icon-only-button {
+    width: 46px;
+    padding: 0;
 }
 
 .download-button:hover,
@@ -650,6 +744,10 @@ button[disabled] {
     right: 8px;
     bottom: 8px;
     z-index: 2;
+}
+
+.selection-mode .gallery-download {
+    display: none;
 }
 
 .lightbox {
@@ -704,7 +802,8 @@ button[disabled] {
     align-items: center;
     justify-content: center;
     min-height: 44px;
-    padding: 0 16px;
+    min-width: 44px;
+    padding: 0;
     border: 1px solid rgba(255, 255, 255, 0.22);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.12);
@@ -1097,8 +1196,7 @@ th {
 
     .photo-select {
         min-height: 34px;
-        padding-inline: 8px;
-        font-size: 0.72rem;
+        padding: 4px;
     }
 
     .lightbox {
