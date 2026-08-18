@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -52,6 +54,9 @@ class LogtoAuthenticationFlowTest {
     @Autowired
     UserManagementService userManagementService;
 
+    @Autowired
+    ClientRegistrationRepository clientRegistrationRepository;
+
     @BeforeEach
     void setUp() {
         userRepository.deleteAll();
@@ -88,6 +93,19 @@ class LogtoAuthenticationFlowTest {
         mockMvc.perform(get("/admin"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().string("Location", containsString("/oauth2/authorization/logto")));
+    }
+
+    @Test
+    void logtoClientRegistrationUsesNightoutDomainAndRolesScope() {
+        ClientRegistration registration = clientRegistrationRepository.findByRegistrationId("logto");
+
+        assertThat(registration.getProviderDetails().getAuthorizationUri()).isEqualTo("https://auth.nightout.co.za/oidc/auth");
+        assertThat(registration.getProviderDetails().getTokenUri()).isEqualTo("https://auth.nightout.co.za/oidc/token");
+        assertThat(registration.getProviderDetails().getJwkSetUri()).isEqualTo("https://auth.nightout.co.za/oidc/jwks");
+        assertThat(registration.getProviderDetails().getUserInfoEndpoint().getUri()).isEqualTo("https://auth.nightout.co.za/oidc/me");
+        assertThat(registration.getScopes()).contains("openid", "profile", "email", "roles");
+        assertThat(registration.getScopes()).doesNotContain("role");
+        assertThat(registration.getRedirectUri()).isEqualTo("{baseUrl}/login/oauth2/code/{registrationId}");
     }
 
     @Test

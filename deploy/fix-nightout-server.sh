@@ -6,12 +6,12 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 site_config="${1:-}"
 
 if [ -z "${site_config}" ]; then
-  if [ -f "${script_dir}/primepick-nginx.conf" ]; then
-    site_config="${script_dir}/primepick-nginx.conf"
-  elif [ -f /tmp/primepick-nginx.conf ]; then
-    site_config="/tmp/primepick-nginx.conf"
+  if [ -f "${script_dir}/nightout-nginx.conf" ]; then
+    site_config="${script_dir}/nightout-nginx.conf"
+  elif [ -f /tmp/nightout-nginx.conf ]; then
+    site_config="/tmp/nightout-nginx.conf"
   else
-    echo "Could not find primepick-nginx.conf. Pass it as the first argument."
+    echo "Could not find nightout-nginx.conf. Pass it as the first argument."
     exit 1
   fi
 fi
@@ -31,22 +31,22 @@ if ! command -v certbot >/dev/null 2>&1; then
   sudo DEBIAN_FRONTEND=noninteractive apt-get install -y certbot python3-certbot-nginx
 fi
 
-if [ ! -f /etc/letsencrypt/live/primepick.co.za/fullchain.pem ]; then
-  echo "Creating Let's Encrypt certificate for primepick.co.za and www.primepick.co.za"
+if [ ! -f /etc/letsencrypt/live/nightout.co.za/fullchain.pem ]; then
+  echo "Creating Let's Encrypt certificate for nightout.co.za and www.nightout.co.za"
   sudo certbot certonly --nginx --non-interactive --agree-tos --register-unsafely-without-email \
-    -d primepick.co.za -d www.primepick.co.za
+    -d nightout.co.za -d www.nightout.co.za
 fi
 
-sudo install -o root -g root -m 0644 "${site_config}" /etc/nginx/sites-available/primepick.conf
+sudo install -o root -g root -m 0644 "${site_config}" /etc/nginx/sites-available/nightout.conf
 
-for site in default nightout nightout.conf 9drive 9drive.conf; do
+for site in default primepick primepick.conf nightout nightout.conf 9drive 9drive.conf; do
   enabled="/etc/nginx/sites-enabled/${site}"
   if [ -e "${enabled}" ] || [ -L "${enabled}" ]; then
     sudo mv "${enabled}" "${backup_dir}/disabled-${site}"
   fi
 done
 
-sudo ln -sf /etc/nginx/sites-available/primepick.conf /etc/nginx/sites-enabled/primepick.conf
+sudo ln -sf /etc/nginx/sites-available/nightout.conf /etc/nginx/sites-enabled/nightout.conf
 
 if [ -f /etc/nightout/nightout.env ]; then
   get_env() {
@@ -83,7 +83,10 @@ if [ -f /etc/nightout/nightout.env ]; then
   }
 
   set_env SERVER_PORT 8090
-  set_env NIGHTOUT_BASE_URL https://primepick.co.za
+  set_env NIGHTOUT_BASE_URL https://nightout.co.za
+  set_env_if_missing SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_LOGTO_ISSUER_URI https://auth.nightout.co.za/oidc
+  set_env SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_SCOPE openid,profile,email,roles
+  set_env_if_missing SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_REDIRECT_URI '{baseUrl}/login/oauth2/code/{registrationId}'
   set_env NIGHTOUT_TIME_ZONE Africa/Johannesburg
   set_env NIGHTOUT_STORAGE_PROVIDER s3
   set_env NIGHTOUT_S3_ENDPOINT http://127.0.0.1:8080
@@ -146,4 +149,4 @@ fi
 
 echo
 echo "External checks to run from your laptop:"
-echo "curl -I https://primepick.co.za"
+echo "curl -I https://nightout.co.za"

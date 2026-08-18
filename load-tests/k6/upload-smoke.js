@@ -2,7 +2,7 @@ import encoding from "k6/encoding";
 import http from "k6/http";
 import { check, sleep } from "k6";
 
-const BASE_URL = (__ENV.BASE_URL || "https://primepick.co.za").replace(/\/$/, "");
+const BASE_URL = (__ENV.BASE_URL || "https://nightout.co.za").replace(/\/$/, "");
 const UPLOAD_PATH = __ENV.UPLOAD_PATH;
 
 export const options = {

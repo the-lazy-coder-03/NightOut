@@ -19,7 +19,7 @@
 <main class="shell">
     <section th:if="${eventView.creator || eventView.event.guestSharingAllowed}" class="private-share" aria-label="Private event invite">
         <strong>Share invite link</strong>
-        <a th:if="${shareInviteLink != null}" th:href="${shareInviteLink}" th:text="${shareInviteLink}">https://primepick.co.za/private-events/invite/token</a>
+        <a th:if="${shareInviteLink != null}" th:href="${shareInviteLink}" th:text="${shareInviteLink}">https://nightout.co.za/private-events/invite/token</a>
         <span th:text="|Event code: ${eventView.event.joinCode}|">Event code: 12345</span>
         <span th:if="${eventView.event.sharePassword != null}" th:text="|Password: ${eventView.event.sharePassword}|">Password: example-password</span>
     </section>

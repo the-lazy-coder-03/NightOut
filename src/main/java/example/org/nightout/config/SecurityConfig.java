@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/",
+                                "/api/v1/**",
                                 "/areas/**",
                                 "/clubs/**",
                                 "/club-images/**",
@@ -60,7 +61,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
                                 "/clubs/*/dates/*/upload",
-                                "/clubs/*/events/*/upload"
+                                "/clubs/*/events/*/upload",
+                                "/api/v1/clubs/*/dates/*/upload",
+                                "/api/v1/clubs/*/events/*/upload"
                         )
                 )
                 .logout(logout -> logout

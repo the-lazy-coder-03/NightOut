@@ -1,7 +1,7 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
 
-const BASE_URL = (__ENV.BASE_URL || "https://primepick.co.za").replace(/\/$/, "");
+const BASE_URL = (__ENV.BASE_URL || "https://nightout.co.za").replace(/\/$/, "");
 const MAX_VUS = Number.parseInt(__ENV.STRESS_MAX_VUS || "200", 10);
 const P95_MS = Number.parseInt(__ENV.STRESS_P95_MS || "1000", 10);
 const P99_MS = Number.parseInt(__ENV.STRESS_P99_MS || "2000", 10);

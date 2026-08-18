@@ -32,10 +32,10 @@ Required production values:
 - `NIGHTOUT_SCHEMA_VERSION`
 - `NIGHTOUT_SCHEMA_RESET_ALLOWED=false`
 - `NIGHTOUT_BASE_URL`
-- `SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_LOGTO_ISSUER_URI=https://auth.primepick.co.za/oidc`
+- `SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_LOGTO_ISSUER_URI=https://auth.nightout.co.za/oidc`
 - `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_CLIENT_ID`
 - `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_CLIENT_SECRET`
-- `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_SCOPE=openid,profile,email,role`
+- `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_SCOPE=openid,profile,email,roles`
 - `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_REDIRECT_URI={baseUrl}/login/oauth2/code/{registrationId}`
 - `SERVER_PORT=8090`
 - `NIGHTOUT_IMAGE_OPTIMIZATION_ENABLED=true`
@@ -66,9 +66,9 @@ NightOut uses Logto for every authenticated browser flow. Local email/password l
 
 Create one Logto Traditional Web app named `NightOut Web` with:
 
-- Redirect URI: `https://primepick.co.za/login/oauth2/code/logto`
+- Redirect URI: `https://nightout.co.za/login/oauth2/code/logto`
 - Local redirect URI: `http://localhost:8090/login/oauth2/code/logto`
-- Post sign-out redirect URI: `https://primepick.co.za/`
+- Post sign-out redirect URI: `https://nightout.co.za/`
 - Local post sign-out redirect URI: `http://localhost:8090/`
 
 Create Logto roles named exactly `super_admin`, `club_owner`, and `user`. Existing NightOut admins and club owners keep their app-side assignments by signing in with the same email address already stored in `app_users`; NightOut links that row to the Logto subject on first login.
