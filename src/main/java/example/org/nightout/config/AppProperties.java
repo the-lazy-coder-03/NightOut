@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "nightout")
 public class AppProperties {
 
+
     private String baseUrl = "http://localhost:8090";
     private String timeZone = "Africa/Johannesburg";
     private int retentionDays = 7;
