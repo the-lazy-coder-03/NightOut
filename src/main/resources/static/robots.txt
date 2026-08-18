@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /login
+Disallow: /oauth2
+Disallow: /owner
+Disallow: /private-events
+Disallow: /*/upload
+
+Sitemap: https://primepick.co.za/sitemap.xml
