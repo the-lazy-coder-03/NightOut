@@ -289,8 +289,8 @@ jobs:
               set_nightout_env SPRING_SESSION_JDBC_INITIALIZE_SCHEMA never
               set_nightout_env SPRING_FLYWAY_SCHEMAS public
               set_nightout_env NIGHTOUT_SCHEMA_RESET_ALLOWED false
-              set_nightout_env NIGHTOUT_BASE_URL https://nightout.co.za
-              set_nightout_env_if_missing SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_LOGTO_ISSUER_URI https://auth.nightout.co.za/oidc
+              set_nightout_env NIGHTOUT_BASE_URL https://crowdcam.co.za
+              set_nightout_env SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_LOGTO_ISSUER_URI https://auth.crowdcam.co.za/oidc
               set_nightout_env SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_SCOPE openid,profile,email,roles
               set_nightout_env_if_missing SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_REDIRECT_URI '{baseUrl}/login/oauth2/code/{registrationId}'
               set_nightout_env NIGHTOUT_TIME_ZONE Africa/Johannesburg

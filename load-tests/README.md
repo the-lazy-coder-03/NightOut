@@ -6,7 +6,7 @@ Start with the read-only public test. It hits safe public pages and does not upl
 
 ```sh
 docker run --rm \
-  -e BASE_URL=https://nightout.co.za \
+  -e BASE_URL=https://crowdcam.co.za \
   -v "$PWD:/repo" \
   grafana/k6 run /repo/load-tests/k6/public-read.js
 ```
@@ -24,7 +24,7 @@ Use the upload smoke test only against a test event, because it writes image fil
 
 ```sh
 docker run --rm \
-  -e BASE_URL=https://nightout.co.za \
+  -e BASE_URL=https://crowdcam.co.za \
   -e UPLOAD_PATH=/clubs/halo/dates/2026-08-17/upload \
   -v "$PWD:/repo" \
   grafana/k6 run /repo/load-tests/k6/upload-smoke.js
@@ -34,7 +34,7 @@ Useful options:
 
 ```sh
 docker run --rm \
-  -e BASE_URL=https://nightout.co.za \
+  -e BASE_URL=https://crowdcam.co.za \
   -e STRESS_MAX_VUS=300 \
   -e STRESS_P95_MS=1500 \
   -v "$PWD:/repo" \

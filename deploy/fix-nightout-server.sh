@@ -31,10 +31,10 @@ if ! command -v certbot >/dev/null 2>&1; then
   sudo DEBIAN_FRONTEND=noninteractive apt-get install -y certbot python3-certbot-nginx
 fi
 
-if [ ! -f /etc/letsencrypt/live/nightout.co.za/fullchain.pem ]; then
-  echo "Creating Let's Encrypt certificate for nightout.co.za and www.nightout.co.za"
+if [ ! -f /etc/letsencrypt/live/crowdcam.co.za/fullchain.pem ]; then
+  echo "Creating Let's Encrypt certificate for crowdcam.co.za and www.crowdcam.co.za"
   sudo certbot certonly --nginx --non-interactive --agree-tos --register-unsafely-without-email \
-    -d nightout.co.za -d www.nightout.co.za
+    -d crowdcam.co.za -d www.crowdcam.co.za
 fi
 
 sudo install -o root -g root -m 0644 "${site_config}" /etc/nginx/sites-available/nightout.conf
@@ -83,8 +83,8 @@ if [ -f /etc/nightout/nightout.env ]; then
   }
 
   set_env SERVER_PORT 8090
-  set_env NIGHTOUT_BASE_URL https://nightout.co.za
-  set_env_if_missing SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_LOGTO_ISSUER_URI https://auth.nightout.co.za/oidc
+  set_env NIGHTOUT_BASE_URL https://crowdcam.co.za
+  set_env SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_LOGTO_ISSUER_URI https://auth.crowdcam.co.za/oidc
   set_env SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_SCOPE openid,profile,email,roles
   set_env_if_missing SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_LOGTO_REDIRECT_URI '{baseUrl}/login/oauth2/code/{registrationId}'
   set_env NIGHTOUT_TIME_ZONE Africa/Johannesburg
@@ -149,4 +149,4 @@ fi
 
 echo
 echo "External checks to run from your laptop:"
-echo "curl -I https://nightout.co.za"
+echo "curl -I https://crowdcam.co.za"

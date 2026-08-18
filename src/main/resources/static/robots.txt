@@ -8,4 +8,4 @@ Disallow: /owner
 Disallow: /private-events
 Disallow: /*/upload
 
-Sitemap: https://nightout.co.za/sitemap.xml
+Sitemap: https://crowdcam.co.za/sitemap.xml

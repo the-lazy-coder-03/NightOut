@@ -99,10 +99,10 @@ class LogtoAuthenticationFlowTest {
     void logtoClientRegistrationUsesNightoutDomainAndRolesScope() {
         ClientRegistration registration = clientRegistrationRepository.findByRegistrationId("logto");
 
-        assertThat(registration.getProviderDetails().getAuthorizationUri()).isEqualTo("https://auth.nightout.co.za/oidc/auth");
-        assertThat(registration.getProviderDetails().getTokenUri()).isEqualTo("https://auth.nightout.co.za/oidc/token");
-        assertThat(registration.getProviderDetails().getJwkSetUri()).isEqualTo("https://auth.nightout.co.za/oidc/jwks");
-        assertThat(registration.getProviderDetails().getUserInfoEndpoint().getUri()).isEqualTo("https://auth.nightout.co.za/oidc/me");
+        assertThat(registration.getProviderDetails().getAuthorizationUri()).isEqualTo("https://auth.crowdcam.co.za/oidc/auth");
+        assertThat(registration.getProviderDetails().getTokenUri()).isEqualTo("https://auth.crowdcam.co.za/oidc/token");
+        assertThat(registration.getProviderDetails().getJwkSetUri()).isEqualTo("https://auth.crowdcam.co.za/oidc/jwks");
+        assertThat(registration.getProviderDetails().getUserInfoEndpoint().getUri()).isEqualTo("https://auth.crowdcam.co.za/oidc/me");
         assertThat(registration.getScopes()).contains("openid", "profile", "email", "roles");
         assertThat(registration.getScopes()).doesNotContain("role");
         assertThat(registration.getRedirectUri()).isEqualTo("{baseUrl}/login/oauth2/code/{registrationId}");

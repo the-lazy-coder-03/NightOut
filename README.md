@@ -67,7 +67,7 @@ Rclone must bind its S3 server to localhost and require authentication. See `dep
 Use `NIGHTOUT_BASE_URL` for generated QR codes, for example:
 
 ```properties
-NIGHTOUT_BASE_URL=https://nightout.co.za
+NIGHTOUT_BASE_URL=https://crowdcam.co.za
 ```
 
 ## Database
@@ -121,7 +121,7 @@ Tests use H2 in PostgreSQL mode, Flyway migrations, local storage, and mocked st
 Load tests live in `load-tests/`. Start with the read-only k6 test:
 
 ```sh
-docker run --rm -e BASE_URL=https://nightout.co.za -v "$PWD:/repo" grafana/k6 run /repo/load-tests/k6/public-read.js
+docker run --rm -e BASE_URL=https://crowdcam.co.za -v "$PWD:/repo" grafana/k6 run /repo/load-tests/k6/public-read.js
 ```
 
 ## Seven-Day Lifecycle
