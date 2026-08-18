@@ -6,10 +6,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @SpringBootApplication
-public class NightoutApplication {
+public class CrowdCamApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(NightoutApplication.class, args);
+        SpringApplication.run(CrowdCamApplication.class, args);
     }
 
 }

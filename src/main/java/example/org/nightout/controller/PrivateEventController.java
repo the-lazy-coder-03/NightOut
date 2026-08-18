@@ -114,7 +114,7 @@ public class PrivateEventController {
         return "private-events/event";
     }
 
-    @PostMapping(value = "/{joinCode}/upload", headers = "X-NightOut-Batch-Upload=true")
+    @PostMapping(value = "/{joinCode}/upload", headers = "X-CrowdCam-Batch-Upload=true")
     @ResponseBody
     public ResponseEntity<UploadBatchResponse> uploadBatch(@AuthenticationPrincipal AuthenticatedUser user,
                                                            @PathVariable String joinCode,

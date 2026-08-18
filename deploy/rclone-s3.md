@@ -1,6 +1,6 @@
 # Rclone S3 Gateway
 
-NightOut uses the AWS SDK for Java S3 client, but the S3 endpoint is local `rclone serve s3`. Rclone is responsible for writing objects into Google Drive.
+CrowdCam uses the AWS SDK for Java S3 client, but the S3 endpoint is local `rclone serve s3`. Rclone is responsible for writing objects into Google Drive.
 
 Do not expose this S3 gateway to the public internet. Bind it to `127.0.0.1`, require `--auth-key`, and let only the local Spring Boot process talk to it.
 
@@ -64,7 +64,7 @@ scope = drive
 
 [nightout_union]
 type = union
-upstreams = drive_primary:NightOut drive_secondary:NightOut
+upstreams = drive_primary:CrowdCam drive_secondary:CrowdCam
 create_policy = mfs
 ```
 
@@ -85,6 +85,6 @@ For systemd with the union backend, set `RCLONE_REMOTE=nightout_union:`.
 3. Store the rclone config at `/etc/rclone/rclone.conf`, owned by the `nightout` user with mode `0600`.
 4. Put `NIGHTOUT_S3_ACCESS_KEY`, `NIGHTOUT_S3_SECRET_KEY`, and `RCLONE_REMOTE` in `/etc/nightout/nightout.env`.
 5. Start `rclone-s3.service` and verify `curl http://127.0.0.1:8080/` does not allow anonymous access.
-6. Start NightOut with `NIGHTOUT_STORAGE_PROVIDER=s3`.
+6. Start CrowdCam with `NIGHTOUT_STORAGE_PROVIDER=s3`.
 
 Do not bind rclone to `0.0.0.0`, do not proxy it through Nginx, and do not run the S3 gateway anonymously.

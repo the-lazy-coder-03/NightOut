@@ -1,5 +1,5 @@
 [Unit]
-Description=Nightout Spring Boot service
+Description=CrowdCam Spring Boot service
 After=network-online.target
 Wants=network-online.target
 

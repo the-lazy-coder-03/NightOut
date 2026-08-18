@@ -161,7 +161,7 @@ public class EventService {
         policyService.requireUploadAvailable(date);
         NightEvent event = new NightEvent();
         event.setClub(club);
-        apply(event, "Night Out", date, LocalTime.of(22, 0), LocalTime.of(3, 0));
+        apply(event, "CrowdCam Night", date, LocalTime.of(22, 0), LocalTime.of(3, 0));
         return eventRepository.save(event);
     }
 }

@@ -96,7 +96,7 @@ class LogtoAuthenticationFlowTest {
     }
 
     @Test
-    void logtoClientRegistrationUsesNightoutDomainAndRolesScope() {
+    void logtoClientRegistrationUsesCrowdCamDomainAndRolesScope() {
         ClientRegistration registration = clientRegistrationRepository.findByRegistrationId("logto");
 
         assertThat(registration.getProviderDetails().getAuthorizationUri()).isEqualTo("https://auth.crowdcam.co.za/oidc/auth");

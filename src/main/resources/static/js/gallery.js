@@ -14,7 +14,7 @@ function showPhoto(index) {
         lightboxDownload.href = activeButton.dataset.galleryDownload;
         lightboxDownload.dataset.saveUrl = activeButton.dataset.galleryDownload;
         lightboxDownload.dataset.shareUrl = shareUrl;
-        lightboxDownload.dataset.saveFilename = activeButton.dataset.galleryFilename || "nightout-photo.jpg";
+        lightboxDownload.dataset.saveFilename = activeButton.dataset.galleryFilename || "crowdcam-photo.jpg";
         lightboxDownload.setAttribute("download", lightboxDownload.dataset.saveFilename);
         lightboxDownload.hidden = false;
     } else if (lightboxDownload) {

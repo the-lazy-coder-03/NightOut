@@ -155,7 +155,7 @@ public class AdminController {
                 .map(photoService::requirePhoto)
                 .map(photo -> new PhotoArchive.Entry(photo.getSafeFilename(), photoService.retrieve(photo).resource()))
                 .toList();
-        return PhotoArchive.zip("nightout-photos.zip", entries);
+        return PhotoArchive.zip("crowdcam-photos.zip", entries);
     }
 
     @PostMapping("/admin/photos/delete-all")

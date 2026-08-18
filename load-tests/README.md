@@ -1,6 +1,6 @@
-# NightOut Load Tests
+# CrowdCam Load Tests
 
-These tests use [k6](https://grafana.com/docs/k6/latest/) to generate HTTP traffic against NightOut.
+These tests use [k6](https://grafana.com/docs/k6/latest/) to generate HTTP traffic against CrowdCam.
 
 Start with the read-only public test. It hits safe public pages and does not upload files:
 

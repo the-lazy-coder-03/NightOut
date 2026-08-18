@@ -30,7 +30,7 @@ export default function () {
 
   const response = http.post(`${BASE_URL}${UPLOAD_PATH}`, form, {
     headers: {
-      "X-NightOut-Batch-Upload": "true",
+      "X-CrowdCam-Batch-Upload": "true",
     },
   });
 

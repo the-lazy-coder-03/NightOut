@@ -14,7 +14,7 @@
     <groupId>example.org</groupId>
     <artifactId>nightout</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Nightout</name>
+    <name>CrowdCam</name>
     <description>Nightlife photo-sharing platform</description>
 
     <properties>

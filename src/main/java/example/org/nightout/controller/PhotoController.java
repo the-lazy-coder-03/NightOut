@@ -35,7 +35,7 @@ public class PhotoController {
                 .map(photoService::publicPhoto)
                 .map(photo -> new PhotoArchive.Entry(photo.getSafeFilename(), photoService.retrieve(photo).resource()))
                 .toList();
-        return PhotoArchive.zip("nightout-photos.zip", entries);
+        return PhotoArchive.zip("crowdcam-photos.zip", entries);
     }
 
     @GetMapping("/photos/{photoId}")

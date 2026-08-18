@@ -82,7 +82,7 @@ public class LogtoUserLinkingService {
 
         AppUser saved = userRepository.save(user);
         if (!saved.isEnabled()) {
-            throw new OAuth2AuthenticationException(new OAuth2Error("access_denied"), "NightOut account is disabled.");
+            throw new OAuth2AuthenticationException(new OAuth2Error("access_denied"), "CrowdCam account is disabled.");
         }
         return new AuthenticatedUser(saved, oidcUser, authorities);
     }
@@ -96,7 +96,7 @@ public class LogtoUserLinkingService {
                 case LOGTO_CLUB_OWNER, LOGTO_CLUBOWNER -> mappedRoles.add("ROLE_CLUB_OWNER");
                 case LOGTO_USER -> mappedRoles.add("ROLE_USER");
                 default -> {
-                    // Ignore unrelated Logto roles; NightOut only recognizes the fixed RBAC model.
+                    // Ignore unrelated Logto roles; CrowdCam only recognizes the fixed RBAC model.
                 }
             }
         }

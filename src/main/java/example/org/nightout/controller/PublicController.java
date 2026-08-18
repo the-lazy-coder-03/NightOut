@@ -113,7 +113,7 @@ public class PublicController {
         return "upload";
     }
 
-    @PostMapping(value = "/clubs/{slug}/events/{eventId}/upload", headers = "X-NightOut-Batch-Upload=true")
+    @PostMapping(value = "/clubs/{slug}/events/{eventId}/upload", headers = "X-CrowdCam-Batch-Upload=true")
     @ResponseBody
     public ResponseEntity<UploadBatchResponse> handleUploadBatch(
             @PathVariable String slug,
@@ -147,7 +147,7 @@ public class PublicController {
         }
     }
 
-    @PostMapping(value = "/clubs/{slug}/dates/{nightDate}/upload", headers = "X-NightOut-Batch-Upload=true")
+    @PostMapping(value = "/clubs/{slug}/dates/{nightDate}/upload", headers = "X-CrowdCam-Batch-Upload=true")
     @ResponseBody
     public ResponseEntity<UploadBatchResponse> handleDateUploadBatch(
             @PathVariable String slug,

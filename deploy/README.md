@@ -1,4 +1,4 @@
-# Nightout Deployment
+# CrowdCam Deployment
 
 GitHub Actions builds the Spring Boot jar with Maven on pushes to `master` or `main`, then deploys it to the EC2 host at `13.41.33.158` when the `EC2_SSH_KEY` repository secret is configured.
 
@@ -54,7 +54,7 @@ Required production values:
 - `NIGHTOUT_S3_PATH_STYLE=true`
 - `RCLONE_REMOTE=drive_primary:` or `RCLONE_REMOTE=nightout_union:`
 
-NightOut talks to `rclone serve s3` with the AWS SDK for Java. Rclone should listen on `127.0.0.1:8080` only, require `--auth-key`, and use Google Drive as the backend. Nginx proxies public traffic to NightOut on `127.0.0.1:8090`; it must not expose rclone publicly. See `deploy/rclone-s3.service.example` for a systemd unit shape.
+CrowdCam talks to `rclone serve s3` with the AWS SDK for Java. Rclone should listen on `127.0.0.1:8080` only, require `--auth-key`, and use Google Drive as the backend. Nginx proxies public traffic to CrowdCam on `127.0.0.1:8090`; it must not expose rclone publicly. See `deploy/rclone-s3.service.example` for a systemd unit shape.
 
 New uploads store S3 object keys in `photos.storage_file_id`. Existing rows from older storage providers are not migrated automatically.
 
@@ -64,15 +64,15 @@ For local runs from the project root, Spring imports `.env` automatically. Keep 
 
 ## Logto
 
-NightOut uses Logto for every authenticated browser flow. Local email/password login is intentionally disabled.
+CrowdCam uses Logto for every authenticated browser flow. Local email/password login is intentionally disabled.
 
-Create one Logto Traditional Web app named `NightOut Web` with:
+Create one Logto Traditional Web app named `CrowdCam Web` with:
 
 - Redirect URI: `https://crowdcam.co.za/login/oauth2/code/logto`
 - Local redirect URI: `http://localhost:8090/login/oauth2/code/logto`
 - Post sign-out redirect URI: `https://crowdcam.co.za/`
 - Local post sign-out redirect URI: `http://localhost:8090/`
 
-Create Logto roles named exactly `super_admin`, `club_owner`, and `user`. Existing NightOut admins and club owners keep their app-side assignments by signing in with the same email address already stored in `app_users`; NightOut links that row to the Logto subject on first login.
+Create Logto roles named exactly `super_admin`, `club_owner`, and `user`. Existing CrowdCam admins and club owners keep their app-side assignments by signing in with the same email address already stored in `app_users`; CrowdCam links that row to the Logto subject on first login.
 
 See `deploy/rclone-s3.md` for rclone remote examples, optional union storage, and the `rclone serve s3` command.

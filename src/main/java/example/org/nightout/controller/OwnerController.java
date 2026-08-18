@@ -113,7 +113,7 @@ public class OwnerController {
                 .peek(photo -> userManagementService.requireCanManageClub(user, photo.getEvent().getClub().getId()))
                 .map(photo -> new PhotoArchive.Entry(photo.getSafeFilename(), photoService.retrieve(photo).resource()))
                 .toList();
-        return PhotoArchive.zip("nightout-photos.zip", entries);
+        return PhotoArchive.zip("crowdcam-photos.zip", entries);
     }
 
     @GetMapping("/owner/clubs/{clubId}/qr.png")

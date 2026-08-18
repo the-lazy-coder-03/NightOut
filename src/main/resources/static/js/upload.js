@@ -143,7 +143,7 @@ uploadForms.forEach((uploadForm) => {
                     method: uploadForm.method || "POST",
                     headers: {
                         Accept: "application/json",
-                        "X-NightOut-Batch-Upload": "true",
+                        "X-CrowdCam-Batch-Upload": "true",
                     },
                     body: buildBatchFormData(uploadForm, fileInput, batch),
                 });

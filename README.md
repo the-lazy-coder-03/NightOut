@@ -1,6 +1,6 @@
-# NightOut
+# CrowdCam
 
-NightOut is a Spring Boot nightlife photo-sharing MVP. Public visitors choose a club, choose a night, view the gallery, and upload photos without creating an account. Administrators and club owners use authenticated dashboards to create clubs/events, moderate photos, and generate permanent club QR codes.
+CrowdCam is a Spring Boot nightlife photo-sharing MVP. Public visitors choose a club, choose a night, view the gallery, and upload photos without creating an account. Administrators and club owners use authenticated dashboards to create clubs/events, moderate photos, and generate permanent club QR codes.
 
 ## Stack
 

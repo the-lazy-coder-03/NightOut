@@ -25,7 +25,7 @@
         const link = event.currentTarget;
         const downloadUrl = link.dataset.saveUrl || link.href;
         const shareUrl = link.dataset.shareUrl || downloadUrl;
-        const filename = link.dataset.saveFilename || link.getAttribute("download") || "nightout-photo.jpg";
+        const filename = link.dataset.saveFilename || link.getAttribute("download") || "crowdcam-photo.jpg";
         if (!downloadUrl) return;
 
         if (!supportsFileShare()) {
@@ -132,7 +132,7 @@
         const files = [];
         for (const input of selected) {
             const shareUrl = input.dataset.shareUrl || input.dataset.saveUrl;
-            const filename = input.dataset.saveFilename || "nightout-photo.jpg";
+            const filename = input.dataset.saveFilename || "crowdcam-photo.jpg";
             const response = await fetch(shareUrl, {credentials: "same-origin"});
             if (!response.ok) throw new Error("Photo download failed.");
 
@@ -142,7 +142,7 @@
         }
 
         if (!navigator.canShare({files})) return false;
-        await navigator.share({files, title: "NightOut photos"});
+        await navigator.share({files, title: "CrowdCam photos"});
         return true;
     }
 

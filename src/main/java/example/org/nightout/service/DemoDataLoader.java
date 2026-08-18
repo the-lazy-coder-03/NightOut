@@ -60,7 +60,7 @@ public class DemoDataLoader implements CommandLineRunner {
 
         AppUser admin = new AppUser();
         admin.setEmail(properties.getSeedAdminEmail());
-        admin.setFullName("Nightout Admin");
+        admin.setFullName("CrowdCam Admin");
         admin.setPasswordHash(null);
         admin.setRole(UserRole.ADMIN);
         userRepository.save(admin);

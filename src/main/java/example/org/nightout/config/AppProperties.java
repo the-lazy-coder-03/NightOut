@@ -17,8 +17,8 @@ public class AppProperties {
     private String storageProvider = "local";
     private String localStoragePath = "./storage/nightout";
     private boolean seedDemo = true;
-    private String seedAdminEmail = "admin@nightout.local";
-    private String seedClubOwnerEmail = "owner@nightout.local";
+    private String seedAdminEmail = "admin@crowdcam.local";
+    private String seedClubOwnerEmail = "owner@crowdcam.local";
     private String schemaVersion = "1";
     private boolean schemaResetAllowed;
     private S3 s3 = new S3();

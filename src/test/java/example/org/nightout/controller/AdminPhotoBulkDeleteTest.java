@@ -120,7 +120,7 @@ class AdminPhotoBulkDeleteTest {
         mockMvc.perform(asyncDispatch(result))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/zip"))
-                .andExpect(header().string("Content-Disposition", containsString("nightout-photos.zip")));
+                .andExpect(header().string("Content-Disposition", containsString("crowdcam-photos.zip")));
     }
 
     @Test

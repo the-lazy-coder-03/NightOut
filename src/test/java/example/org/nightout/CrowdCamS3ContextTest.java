@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
         "nightout.s3.secret-key=test-secret-key",
         "nightout.s3.path-style=true"
 })
-class NightoutS3ContextTest {
+class CrowdCamS3ContextTest {
 
     @Test
     void contextLoadsWithS3Storage() {

@@ -3,12 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${eventView.event.eventName} + ' | NightOut'">Night | NightOut</title>
+    <title th:text="${eventView.event.eventName} + ' | CrowdCam'">Night | CrowdCam</title>
     <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
 <header class="topbar">
-    <a class="brand" href="/">NightOut</a>
+    <a class="brand" href="/">CrowdCam</a>
     <nav class="nav">
         <a th:href="@{/clubs/{slug}(slug=${club.slug})}" th:text="${club.name}">Club</a>
     </nav>

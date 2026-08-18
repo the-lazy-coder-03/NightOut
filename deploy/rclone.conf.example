@@ -11,5 +11,5 @@ scope = drive
 
 [nightout_union]
 type = union
-upstreams = drive_primary:NightOut drive_secondary:NightOut
+upstreams = drive_primary:CrowdCam drive_secondary:CrowdCam
 create_policy = mfs

@@ -107,17 +107,17 @@ echo "Testing and reloading Nginx"
 sudo nginx -t
 sudo systemctl reload nginx
 
-echo "Restarting NightOut"
+echo "Restarting CrowdCam"
 if ! sudo systemctl restart nightout; then
-  echo "NightOut restart returned a failure."
+  echo "CrowdCam restart returned a failure."
 fi
 
 echo
-echo "NightOut status:"
+echo "CrowdCam status:"
 sudo systemctl status nightout --no-pager -l | sed -n '1,80p' || true
 
 echo
-echo "Recent NightOut logs:"
+echo "Recent CrowdCam logs:"
 sudo journalctl -u nightout -n 120 --no-pager -o cat || true
 
 echo
@@ -130,7 +130,7 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 
 echo
-echo "Waiting for NightOut to answer on http://127.0.0.1:8090"
+echo "Waiting for CrowdCam to answer on http://127.0.0.1:8090"
 nightout_ready=false
 for _ in {1..30}; do
   if curl -fsS --max-time 3 http://127.0.0.1:8090/ >/dev/null; then
@@ -141,7 +141,7 @@ for _ in {1..30}; do
 done
 
 if [ "${nightout_ready}" != true ]; then
-  echo "NightOut did not answer on port 8090."
+  echo "CrowdCam did not answer on port 8090."
   sudo systemctl status nightout --no-pager -l | sed -n '1,120p' || true
   sudo journalctl -u nightout -n 160 --no-pager -o cat || true
   exit 1

@@ -1,5 +1,5 @@
 [Unit]
-Description=NightOut rclone S3 gateway
+Description=CrowdCam rclone S3 gateway
 After=network-online.target
 Wants=network-online.target
 

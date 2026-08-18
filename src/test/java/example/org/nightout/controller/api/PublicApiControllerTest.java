@@ -180,7 +180,7 @@ class PublicApiControllerTest {
 
         List<NightEvent> events = eventRepository.findByClubAndCancelledFalseAndEventDateOrderByStartTimeAsc(halo, LocalDate.of(2026, 8, 6));
         assertThat(events).hasSize(1);
-        assertThat(events.getFirst().getEventName()).isEqualTo("Night Out");
+        assertThat(events.getFirst().getEventName()).isEqualTo("CrowdCam Night");
     }
 
     @Test

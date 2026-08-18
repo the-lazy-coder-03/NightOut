@@ -30,26 +30,26 @@ public class SchemaVersionFlywayMigrationStrategy implements FlywayMigrationStra
         String storedVersion = readStoredVersion(flyway);
 
         if (storedVersion == null) {
-            LOGGER.info("No NightOut schema version marker found; applying migrations and recording version {}.", requestedVersion);
+            LOGGER.info("No CrowdCam schema version marker found; applying migrations and recording version {}.", requestedVersion);
             flyway.migrate();
             writeStoredVersion(flyway, requestedVersion);
             return;
         }
 
         if (storedVersion.equals(requestedVersion)) {
-            LOGGER.info("NightOut schema version {} is current; applying any pending migrations.", requestedVersion);
+            LOGGER.info("CrowdCam schema version {} is current; applying any pending migrations.", requestedVersion);
             flyway.migrate();
             return;
         }
 
         if (!properties.isSchemaResetAllowed()) {
-            throw new IllegalStateException("NightOut database schema version is " + storedVersion
+            throw new IllegalStateException("CrowdCam database schema version is " + storedVersion
                     + " but NIGHTOUT_SCHEMA_VERSION is " + requestedVersion
                     + ". Set NIGHTOUT_SCHEMA_RESET_ALLOWED=true to drop and rebuild the configured Flyway schema, "
                     + "or set NIGHTOUT_SCHEMA_VERSION back to " + storedVersion + ".");
         }
 
-        LOGGER.warn("NightOut schema version changed from {} to {}; dropping and rebuilding configured Flyway schema.",
+        LOGGER.warn("CrowdCam schema version changed from {} to {}; dropping and rebuilding configured Flyway schema.",
                 storedVersion, requestedVersion);
         flyway.clean();
         flyway.migrate();
@@ -73,7 +73,7 @@ public class SchemaVersionFlywayMigrationStrategy implements FlywayMigrationStra
                 }
             }
         } catch (SQLException ex) {
-            throw new IllegalStateException("Could not read NightOut schema version marker.", ex);
+            throw new IllegalStateException("Could not read CrowdCam schema version marker.", ex);
         }
     }
 
@@ -93,7 +93,7 @@ public class SchemaVersionFlywayMigrationStrategy implements FlywayMigrationStra
                 insert.executeUpdate();
             }
         } catch (SQLException ex) {
-            throw new IllegalStateException("Could not write NightOut schema version marker.", ex);
+            throw new IllegalStateException("Could not write CrowdCam schema version marker.", ex);
         }
     }
 

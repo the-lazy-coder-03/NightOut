@@ -84,7 +84,7 @@ class PublicDateFlowTest {
     void homePageShowsFixedAreaLinksInsteadOfClubCards() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("NightOut South Africa")))
+                .andExpect(content().string(containsString("CrowdCam South Africa")))
                 .andExpect(content().string(containsString("/areas/cape-town")))
                 .andExpect(content().string(containsString("/areas/claremont")))
                 .andExpect(content().string(containsString("/areas/stellenbosch")))
@@ -294,14 +294,14 @@ class PublicDateFlowTest {
 
         List<NightEvent> events = eventRepository.findByClubAndCancelledFalseAndEventDateOrderByStartTimeAsc(halo, LocalDate.of(2026, 8, 6));
         assertThat(events).hasSize(1);
-        assertThat(events.getFirst().getEventName()).isEqualTo("Night Out");
+        assertThat(events.getFirst().getEventName()).isEqualTo("CrowdCam Night");
     }
 
     @Test
     void datePageBatchUploadReturnsJsonAndCreatesUploadTargetOnSuccess() throws Exception {
         mockMvc.perform(multipart("/clubs/halo/dates/2026-08-06/upload")
                         .file(jpeg("batch-inline.jpg"))
-                        .header("X-NightOut-Batch-Upload", "true")
+                        .header("X-CrowdCam-Batch-Upload", "true")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -331,7 +331,7 @@ class PublicDateFlowTest {
 
         mockMvc.perform(multipart("/clubs/halo/dates/2026-08-06/upload")
                         .file(text)
-                        .header("X-NightOut-Batch-Upload", "true")
+                        .header("X-CrowdCam-Batch-Upload", "true")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -376,7 +376,7 @@ class PublicDateFlowTest {
         mockMvc.perform(multipart("/clubs/halo/events/{eventId}/upload", haloFriday.getId())
                         .file(jpeg("inline-event-batch.jpg"))
                         .param("returnDate", "2026-08-07")
-                        .header("X-NightOut-Batch-Upload", "true")
+                        .header("X-CrowdCam-Batch-Upload", "true")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))

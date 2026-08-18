@@ -3,12 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${club.name} + ' Owner | NightOut'">Owner | NightOut</title>
+    <title th:text="${club.name} + ' Owner | CrowdCam'">Owner | CrowdCam</title>
     <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
 <header class="topbar">
-    <a class="brand" href="/owner">NightOut Owner</a>
+    <a class="brand" href="/owner">CrowdCam Owner</a>
     <nav class="nav">
         <a th:href="@{/clubs/{slug}(slug=${club.slug})}">Public page</a>
         <a th:href="@{/owner/clubs/{id}/qr.png(id=${club.id})}" download>QR PNG</a>

@@ -122,7 +122,7 @@ class PrivateEventFlowTest {
                 "<span>private event</span>"
         );
         assertThat(html).doesNotContain(
-                "Create or join a private NightOut event",
+                "Create or join a private CrowdCam event",
                 "Start a private event and share the code and password with friends.",
                 "Enter a code and password once, then come back from your account.",
                 "class=\"eyebrow\""
