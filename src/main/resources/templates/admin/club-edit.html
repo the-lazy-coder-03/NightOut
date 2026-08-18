@@ -22,12 +22,12 @@
         <div class="admin-sidebar-section">
             <span class="admin-sidebar-label">Dashboard</span>
             <nav class="admin-sidebar-nav" aria-label="Admin sections">
-                <a class="admin-nav-link" href="/admin#create-club">Create Club</a>
-                <a class="admin-nav-link" href="/admin#clubs">Clubs</a>
-                <a class="admin-nav-link" href="/admin#create-night">Create Night</a>
-                <a class="admin-nav-link" href="/admin#nights">Nights</a>
-                <a class="admin-nav-link" href="/admin#owners">Owners</a>
-                <a class="admin-nav-link" href="/admin#photos">Photos</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="create-club">Create Club</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="clubs">Clubs</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="create-night">Create Night</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="nights">Nights</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="owners">Owners</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="photos">Photos</a>
             </nav>
         </div>
         <div class="admin-sidebar-footer">
@@ -45,12 +45,12 @@
     </div>
     <div class="offcanvas-body">
         <nav class="admin-sidebar-nav" aria-label="Admin sections">
-            <a class="admin-nav-link" href="/admin#create-club" data-bs-dismiss="offcanvas">Create Club</a>
-            <a class="admin-nav-link" href="/admin#clubs" data-bs-dismiss="offcanvas">Clubs</a>
-            <a class="admin-nav-link" href="/admin#create-night" data-bs-dismiss="offcanvas">Create Night</a>
-            <a class="admin-nav-link" href="/admin#nights" data-bs-dismiss="offcanvas">Nights</a>
-            <a class="admin-nav-link" href="/admin#owners" data-bs-dismiss="offcanvas">Owners</a>
-            <a class="admin-nav-link" href="/admin#photos" data-bs-dismiss="offcanvas">Photos</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="create-club" data-bs-dismiss="offcanvas">Create Club</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="clubs" data-bs-dismiss="offcanvas">Clubs</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="create-night" data-bs-dismiss="offcanvas">Create Night</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="nights" data-bs-dismiss="offcanvas">Nights</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="owners" data-bs-dismiss="offcanvas">Owners</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="photos" data-bs-dismiss="offcanvas">Photos</a>
         </nav>
         <div class="admin-sidebar-footer">
             <a class="admin-nav-link" href="/owner" data-bs-dismiss="offcanvas">Owner View</a>
@@ -92,5 +92,6 @@
     </form>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+<script src="/js/admin-dashboard.js"></script>
 </body>
 </html>

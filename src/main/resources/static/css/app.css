@@ -307,12 +307,20 @@ img {
 
 .admin-nav-link:hover,
 .admin-nav-link:focus-visible,
+.admin-nav-link.active,
+.admin-nav-link[aria-current="page"],
 .admin-logout-button:hover,
 .admin-logout-button:focus-visible {
     border-color: rgba(132, 229, 216, 0.24);
     background: rgba(24, 169, 153, 0.12);
     color: #ffffff;
     outline: none;
+}
+
+.admin-nav-link.active,
+.admin-nav-link[aria-current="page"] {
+    border-color: rgba(132, 229, 216, 0.38);
+    background: rgba(24, 169, 153, 0.18);
 }
 
 .admin-sidebar-footer {
@@ -365,6 +373,10 @@ img {
 
 .admin-page .hero h1 {
     font-size: clamp(2.3rem, 4vw, 3.6rem);
+}
+
+.admin-dashboard-ready .admin-dashboard-hero {
+    display: none;
 }
 
 .admin-page .section[id] {

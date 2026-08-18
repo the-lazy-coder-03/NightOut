@@ -22,12 +22,12 @@
         <div class="admin-sidebar-section">
             <span class="admin-sidebar-label">Dashboard</span>
             <nav class="admin-sidebar-nav" aria-label="Admin sections">
-                <a class="admin-nav-link" href="/admin#create-club">Create Club</a>
-                <a class="admin-nav-link" href="/admin#clubs">Clubs</a>
-                <a class="admin-nav-link" href="/admin#create-night">Create Night</a>
-                <a class="admin-nav-link" href="/admin#nights">Nights</a>
-                <a class="admin-nav-link" href="/admin#owners">Owners</a>
-                <a class="admin-nav-link" href="/admin#photos">Photos</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="create-club">Create Club</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="clubs">Clubs</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="create-night">Create Night</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="nights">Nights</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="owners">Owners</a>
+                <a class="admin-nav-link" href="/admin" data-admin-section="photos">Photos</a>
             </nav>
         </div>
         <div class="admin-sidebar-footer">
@@ -45,12 +45,12 @@
     </div>
     <div class="offcanvas-body">
         <nav class="admin-sidebar-nav" aria-label="Admin sections">
-            <a class="admin-nav-link" href="/admin#create-club" data-bs-dismiss="offcanvas">Create Club</a>
-            <a class="admin-nav-link" href="/admin#clubs" data-bs-dismiss="offcanvas">Clubs</a>
-            <a class="admin-nav-link" href="/admin#create-night" data-bs-dismiss="offcanvas">Create Night</a>
-            <a class="admin-nav-link" href="/admin#nights" data-bs-dismiss="offcanvas">Nights</a>
-            <a class="admin-nav-link" href="/admin#owners" data-bs-dismiss="offcanvas">Owners</a>
-            <a class="admin-nav-link" href="/admin#photos" data-bs-dismiss="offcanvas">Photos</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="create-club" data-bs-dismiss="offcanvas">Create Club</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="clubs" data-bs-dismiss="offcanvas">Clubs</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="create-night" data-bs-dismiss="offcanvas">Create Night</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="nights" data-bs-dismiss="offcanvas">Nights</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="owners" data-bs-dismiss="offcanvas">Owners</a>
+            <a class="admin-nav-link" href="/admin" data-admin-section="photos" data-bs-dismiss="offcanvas">Photos</a>
         </nav>
         <div class="admin-sidebar-footer">
             <a class="admin-nav-link" href="/owner" data-bs-dismiss="offcanvas">Owner View</a>
@@ -60,16 +60,16 @@
         </div>
     </div>
 </div>
-<main class="shell admin-shell">
+<main class="shell admin-shell" data-admin-dashboard>
     <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Saved.</div>
     <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Could not save.</div>
-    <section class="hero">
+    <section class="hero admin-dashboard-hero">
         <span class="eyebrow">Control room</span>
         <h1>Admin Dashboard</h1>
         <p>Create clubs, manage nights, assign owners, remove photos, and download permanent club QR codes.</p>
     </section>
 
-    <section class="section" id="create-club">
+    <section class="section" id="create-club" data-admin-panel="create-club">
         <h2>Create club</h2>
         <form class="card form-grid two" method="post" enctype="multipart/form-data" th:action="@{/admin/clubs}">
             <label>Name <input name="name" required></label>
@@ -87,7 +87,7 @@
         </form>
     </section>
 
-    <section class="section" id="clubs">
+    <section class="section" id="clubs" data-admin-panel="clubs">
         <h2>Clubs</h2>
         <div class="table-wrap">
             <table>
@@ -113,7 +113,7 @@
         </div>
     </section>
 
-    <section class="section" id="create-night">
+    <section class="section" id="create-night" data-admin-panel="create-night">
         <h2>Create night</h2>
         <form class="card form-grid three" method="post" th:action="@{/admin/events}">
             <label>Club
@@ -129,7 +129,7 @@
         </form>
     </section>
 
-    <section class="section" id="nights">
+    <section class="section" id="nights" data-admin-panel="nights">
         <h2>Nights</h2>
         <div class="table-wrap">
             <table>
@@ -155,7 +155,7 @@
         </div>
     </section>
 
-    <section class="section" id="owners">
+    <section class="section" id="owners" data-admin-panel="owners">
         <h2>Link club owner</h2>
         <form class="card form-grid two" method="post" th:action="@{/admin/owners}">
             <label>Email <input name="email" type="email" required></label>
@@ -169,7 +169,7 @@
         </form>
     </section>
 
-    <section class="section" id="photos">
+    <section class="section" id="photos" data-admin-panel="photos">
         <div class="section-head">
             <h2>Photos</h2>
             <form method="post" th:if="${!#lists.isEmpty(photos)}" th:action="@{/admin/photos/delete-all}" onsubmit="return confirm('Delete all photos? This cannot be undone.');">
@@ -223,6 +223,7 @@
     </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+<script src="/js/admin-dashboard.js"></script>
 <script src="/js/photo-save.js"></script>
 </body>
 </html>
