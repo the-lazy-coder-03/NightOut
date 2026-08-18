@@ -265,17 +265,26 @@ p {
 .private-action-grid {
     display: grid;
     gap: 14px;
+    align-items: stretch;
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .private-action-card {
+    display: grid;
+    align-items: end;
     min-height: 220px;
     align-content: end;
     transition: border-color 160ms ease, transform 160ms ease;
 }
 
-.private-action-card h2 {
+.private-action-title {
+    display: grid;
+    gap: 2px;
     font-size: 3.2rem;
+}
+
+.private-action-title span {
+    display: block;
 }
 
 .private-action-card:hover,
@@ -1169,7 +1178,7 @@ th {
         min-height: 168px;
     }
 
-    .private-action-card h2 {
+    .private-action-title {
         font-size: 1.8rem;
     }
 
@@ -1262,7 +1271,7 @@ th {
         font-size: 3.2rem;
     }
 
-    .private-action-card h2 {
+    .private-action-title {
         font-size: 2.4rem;
     }
 }
