@@ -114,6 +114,12 @@ class PrivateEventFlowTest {
                 .getContentAsString();
 
         assertThat(html).containsSubsequence("Create private event", "Join private event");
+        assertThat(html).doesNotContain(
+                "Create or join a private NightOut event",
+                "Start a private event and share the code and password with friends.",
+                "Enter a code and password once, then come back from your account.",
+                "class=\"eyebrow\""
+        );
     }
 
     @Test

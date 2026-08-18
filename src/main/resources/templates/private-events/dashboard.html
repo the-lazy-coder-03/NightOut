@@ -20,20 +20,12 @@
     <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Saved.</div>
     <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Could not save.</div>
 
-    <section class="hero">
-        <h1>Create or join a private NightOut event</h1>
-    </section>
-
     <section class="private-action-grid" aria-label="Private event actions">
         <a class="card card-link private-action-card" href="/private-events/create">
-            <span class="eyebrow">Create</span>
             <h2>Create private event</h2>
-            <p>Start a private event and share the code and password with friends.</p>
         </a>
         <a class="card card-link private-action-card" href="/private-events/join">
-            <span class="eyebrow">Join</span>
             <h2>Join private event</h2>
-            <p>Enter a code and password once, then come back from your account.</p>
         </a>
     </section>
 
