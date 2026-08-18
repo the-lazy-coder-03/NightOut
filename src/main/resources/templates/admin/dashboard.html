@@ -4,19 +4,63 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin | NightOut</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="/css/app.css">
 </head>
-<body>
-<header class="topbar">
-    <a class="brand" href="/">NightOut Admin</a>
-    <nav class="nav">
-        <a href="/owner">Owner view</a>
-        <form method="post" th:action="@{/logout}">
-            <button type="submit">Log out</button>
-        </form>
-    </nav>
-</header>
-<main class="shell">
+<body class="admin-page" data-bs-theme="dark">
+<nav class="navbar admin-mobile-nav d-lg-none">
+    <div class="container-fluid">
+        <a class="admin-mobile-brand" href="/admin">NightOut Admin</a>
+        <button class="navbar-toggler admin-menu-button" type="button" data-bs-toggle="offcanvas" data-bs-target="#adminSidebar" aria-controls="adminSidebar" aria-label="Open admin menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</nav>
+<aside class="admin-sidebar d-none d-lg-flex">
+    <div class="admin-sidebar-inner">
+        <a class="admin-sidebar-brand" href="/admin">NightOut Admin</a>
+        <div class="admin-sidebar-section">
+            <span class="admin-sidebar-label">Dashboard</span>
+            <nav class="admin-sidebar-nav" aria-label="Admin sections">
+                <a class="admin-nav-link" href="/admin#create-club">Create Club</a>
+                <a class="admin-nav-link" href="/admin#clubs">Clubs</a>
+                <a class="admin-nav-link" href="/admin#create-night">Create Night</a>
+                <a class="admin-nav-link" href="/admin#nights">Nights</a>
+                <a class="admin-nav-link" href="/admin#owners">Owners</a>
+                <a class="admin-nav-link" href="/admin#photos">Photos</a>
+            </nav>
+        </div>
+        <div class="admin-sidebar-footer">
+            <a class="admin-nav-link" href="/owner">Owner View</a>
+            <form class="admin-logout-form" method="post" th:action="@{/logout}">
+                <button class="admin-nav-link admin-logout-button" type="submit">Log Out</button>
+            </form>
+        </div>
+    </div>
+</aside>
+<div class="offcanvas offcanvas-start admin-offcanvas d-lg-none" tabindex="-1" id="adminSidebar" aria-labelledby="adminSidebarLabel">
+    <div class="offcanvas-header">
+        <a class="admin-sidebar-brand" id="adminSidebarLabel" href="/admin">NightOut Admin</a>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <nav class="admin-sidebar-nav" aria-label="Admin sections">
+            <a class="admin-nav-link" href="/admin#create-club" data-bs-dismiss="offcanvas">Create Club</a>
+            <a class="admin-nav-link" href="/admin#clubs" data-bs-dismiss="offcanvas">Clubs</a>
+            <a class="admin-nav-link" href="/admin#create-night" data-bs-dismiss="offcanvas">Create Night</a>
+            <a class="admin-nav-link" href="/admin#nights" data-bs-dismiss="offcanvas">Nights</a>
+            <a class="admin-nav-link" href="/admin#owners" data-bs-dismiss="offcanvas">Owners</a>
+            <a class="admin-nav-link" href="/admin#photos" data-bs-dismiss="offcanvas">Photos</a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <a class="admin-nav-link" href="/owner" data-bs-dismiss="offcanvas">Owner View</a>
+            <form class="admin-logout-form" method="post" th:action="@{/logout}">
+                <button class="admin-nav-link admin-logout-button" type="submit">Log Out</button>
+            </form>
+        </div>
+    </div>
+</div>
+<main class="shell admin-shell">
     <div th:if="${successMessage}" class="flash success" th:text="${successMessage}">Saved.</div>
     <div th:if="${errorMessage}" class="flash error" th:text="${errorMessage}">Could not save.</div>
     <section class="hero">
@@ -25,7 +69,7 @@
         <p>Create clubs, manage nights, assign owners, remove photos, and download permanent club QR codes.</p>
     </section>
 
-    <section class="section">
+    <section class="section" id="create-club">
         <h2>Create club</h2>
         <form class="card form-grid two" method="post" enctype="multipart/form-data" th:action="@{/admin/clubs}">
             <label>Name <input name="name" required></label>
@@ -43,7 +87,7 @@
         </form>
     </section>
 
-    <section class="section">
+    <section class="section" id="clubs">
         <h2>Clubs</h2>
         <div class="table-wrap">
             <table>
@@ -69,7 +113,7 @@
         </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="create-night">
         <h2>Create night</h2>
         <form class="card form-grid three" method="post" th:action="@{/admin/events}">
             <label>Club
@@ -85,7 +129,7 @@
         </form>
     </section>
 
-    <section class="section">
+    <section class="section" id="nights">
         <h2>Nights</h2>
         <div class="table-wrap">
             <table>
@@ -111,7 +155,7 @@
         </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="owners">
         <h2>Link club owner</h2>
         <form class="card form-grid two" method="post" th:action="@{/admin/owners}">
             <label>Email <input name="email" type="email" required></label>
@@ -125,7 +169,7 @@
         </form>
     </section>
 
-    <section class="section">
+    <section class="section" id="photos">
         <div class="section-head">
             <h2>Photos</h2>
             <form method="post" th:if="${!#lists.isEmpty(photos)}" th:action="@{/admin/photos/delete-all}" onsubmit="return confirm('Delete all photos? This cannot be undone.');">
@@ -178,6 +222,7 @@
         </div>
     </section>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 <script src="/js/photo-save.js"></script>
 </body>
 </html>
