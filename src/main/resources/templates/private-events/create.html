@@ -25,10 +25,14 @@
         <p>Share the generated code and this password with the people you want inside.</p>
     </section>
 
-    <form class="card form-grid" method="post" th:action="@{/private-events}">
+    <form class="card form-grid private-event-create-form" method="post" th:action="@{/private-events}">
         <label>Event name <input name="eventName" autocomplete="off" required></label>
         <label>Password <input name="password" type="text" minlength="8" autocomplete="off" required></label>
-        <label>Allow guests to share link/password <input type="checkbox" name="guestSharingAllowed" value="true"></label>
+        <label class="toggle-switch">
+            <span>Allow guests to share link/password</span>
+            <input type="checkbox" name="guestSharingAllowed" value="true" checked>
+            <span class="toggle-slider" aria-hidden="true"></span>
+        </label>
         <button class="button" type="submit">Create Event</button>
     </form>
 </main>
